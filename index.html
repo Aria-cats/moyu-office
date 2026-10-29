@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="五条有班味的鱼、六种摸鱼姿势。一起摸到最后一下，决定这条鱼的命运。"
+    />
+    <title>摸鱼办事处 · 今天也要有所鱼获</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <svg viewBox="0 0 72 64" fill="none" aria-label="躺平鱼吉祥物">
+          <path
+            d="M16 35L5 23L7 46L18 39"
+            fill="#e79a65"
+            stroke="#414b39"
+            stroke-width="2.3"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M17 27C29 13 57 19 64 37C58 54 27 56 17 42Z"
+            fill="#f0c47c"
+            stroke="#414b39"
+            stroke-width="2.3"
+          />
+          <path
+            d="M29 23L32 14L43 20"
+            fill="#e79a65"
+            stroke="#414b39"
+            stroke-width="2"
+          />
+          <path
+            d="M46 32L51 34L56 31M55 42Q59 45 62 41"
+            stroke="#414b39"
+            stroke-width="2.2"
+            stroke-linecap="round"
+          />
+          <path
+            d="M30 38Q23 45 35 48L42 41"
+            fill="#e79a65"
+            stroke="#414b39"
+            stroke-width="1.5"
+          />
+          <ellipse cx="48" cy="41" rx="4" ry="2" fill="#df806a" />
+          <path
+            d="M4 56Q33 60 66 55"
+            stroke="#b2b5a0"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <text
+            x="55"
+            y="15"
+            fill="#7d8b67"
+            font-size="14"
+            font-family="monospace"
+            transform="rotate(12 55 15)"
+          >
+            z
+          </text>
+          <text
+            x="64"
+            y="7"
+            fill="#7d8b67"
+            font-size="9"
+            font-family="monospace"
+          >
+            z
+          </text>
+        </svg>
+        <div>摸鱼办事处<small>DEPARTMENT OF DOING NOTHING</small></div>
+      </div>
+      <nav class="nav">
+        <button class="active" id="home">今日鱼塘</button
+        ><button id="archive">鱼生档案 ↗</button
+        ><button class="boss" id="boss">▦ 老板来了<kbd>Esc</kbd></button>
+      </nav>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">A LITTLE BREAK, A LITTLE FISH.</div>
+          <h1>上班的事先放放，<em>摸条鱼吧。</em></h1>
+          <div class="sub">你摸的每一下，都在决定它的下场。</div>
+        </div>
+        <div class="online">
+          <i class="dot"></i><span id="connection">正在连接鱼塘</span>
+        </div>
+      </section>
+      <div class="layout">
+        <section class="aquarium">
+          <div class="tank-head">
+            <span class="tag" id="poolLabel">● 今日公共鱼塘</span
+            ><span class="number" id="fishNumber">Fish No. 001</span>
+          </div>
+          <div class="tank-title">
+            <strong id="fishName">这位是，鱼大福。</strong>
+            <p id="fishSubtitle">一条正在接受职场按摩的草鱼</p>
+          </div>
+          <div class="water-word">just keep touching.</div>
+          <div class="bubble-speech" id="speech" aria-live="polite">
+            上班辛苦了。你也是，我也是。
+          </div>
+          <div class="fish-zone">
+            <div class="shadow"></div>
+            <button
+              class="fish-btn"
+              id="fish"
+              aria-label="摸一下鱼，贡献一次摸鱼"
+              disabled
+            >
+              <svg class="fish-svg" id="fishSvg" viewBox="0 0 680 280">
+                <defs>
+                  <linearGradient id="body" x1="0" y1="0" x2=".3" y2="1">
+                    <stop stop-color="#6f8163" />
+                    <stop offset=".42" stop-color="#a9bb8c" />
+                    <stop offset="1" stop-color="#e0dfb5" />
+                  </linearGradient>
+                  <linearGradient id="tail" x1="0" y1="0" x2="1" y2="1">
+                    <stop stop-color="#98a77b" />
+                    <stop offset="1" stop-color="#b7bc8f" />
+                  </linearGradient>
+                  <linearGradient id="belly">
+                    <stop stop-color="#ede6c6" />
+                    <stop offset="1" stop-color="#bec7a0" />
+                  </linearGradient>
+                  <clipPath id="bodyClip">
+                    <path
+                      d="M155 140C210 34 433 20 539 106Q577 131 586 149Q571 182 532 199C398 258 225 234 155 140Z"
+                    />
+                  </clipPath>
+                </defs>
+                <g class="tail">
+                  <path
+                    d="M182 139C139 111 98 66 68 68Q84 117 73 139Q82 163 66 214C109 205 143 171 182 146Z"
+                    fill="url(#tail)"
+                    stroke="#869673"
+                    stroke-width="1.2"
+                  />
+                  <path
+                    d="M79 83L165 141L80 199M80 105L160 142L82 176M79 140L157 142"
+                    stroke="#7a8b65"
+                    opacity=".35"
+                    fill="none"
+                  />
+                </g>
+                <path
+                  d="M263 75Q306 18 365 35L424 73"
+                  fill="#899c74"
+                  stroke="#71865f"
+                  stroke-width="1"
+                />
+                <path
+                  d="M276 69L305 40M299 66L325 36M324 62L344 36M348 62L363 39M370 63L380 47"
+                  stroke="#677e58"
+                  opacity=".35"
+                />
+                <path
+                  d="M155 140C210 34 433 20 539 106Q577 131 586 149Q571 182 532 199C398 258 225 234 155 140Z"
+                  fill="url(#body)"
+                  stroke="#7f926b"
+                  stroke-width="1.2"
+                />
+                <g clip-path="url(#bodyClip)" id="scales"></g>
+                <path
+                  d="M185 166Q340 253 532 183Q436 247 295 216Q217 199 185 166"
+                  fill="url(#belly)"
+                  opacity=".58"
+                />
+                <path
+                  d="M476 85Q443 138 475 199"
+                  fill="none"
+                  stroke="#6e825b"
+                  stroke-width="2"
+                  opacity=".7"
+                />
+                <path
+                  d="M466 104Q447 145 466 179"
+                  fill="none"
+                  stroke="#d4d8ae"
+                  stroke-width="2"
+                  opacity=".4"
+                />
+                <g class="fin">
+                  <path
+                    d="M422 163Q399 217 342 226Q355 182 381 160"
+                    fill="#a0af80"
+                    stroke="#81946c"
+                    stroke-width="1"
+                  />
+                  <path
+                    d="M412 169L355 216M401 167L355 201M389 165L360 186"
+                    stroke="#7e9167"
+                    opacity=".5"
+                  />
+                </g>
+                <circle cx="525" cy="124" r="15" fill="#dedcb0" />
+                <circle cx="526" cy="124" r="9" fill="#394337" />
+                <circle cx="529" cy="121" r="3" fill="#fffdee" />
+                <path
+                  id="mouth"
+                  d="M566 153Q577 160 584 150"
+                  fill="none"
+                  stroke="#6b7d58"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <ellipse
+                  cx="536"
+                  cy="151"
+                  rx="15"
+                  ry="7"
+                  fill="#d69e86"
+                  opacity=".25"
+                />
+                <path
+                  d="M492 96Q513 84 533 101"
+                  fill="none"
+                  stroke="#60734e"
+                  opacity=".5"
+                  stroke-linecap="round"
+                  stroke-width="2"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="combo" id="combo" aria-live="polite"></div>
+          <div class="hint">
+            点击鱼身，今日功德 +1 <span>也可以按空格</span>
+          </div>
+          <div class="bubble b1"></div>
+          <div class="bubble b2"></div>
+          <div class="bubble b3"></div>
+          <div class="bubble b4"></div>
+          <div class="tank-bottom">
+            <span id="mood">鱼的状态：<strong>以为是免费 SPA</strong></span
+            ><span>本鱼不接受调休</span>
+          </div>
+        </section>
+        <aside class="side">
+          <section class="card">
+            <div class="small-label">距离下锅，还差你的几下</div>
+            <div class="progress-count">
+              <strong id="count">0</strong
+              ><span>/ <span id="target">10,000</span></span>
+            </div>
+            <div class="track"><div class="fill" id="fill"></div></div>
+            <div class="progress-note">
+              <span id="percent">0% 已摸</span
+              ><span id="remaining">待摸 10,000 次</span>
+            </div>
+            <div class="rule">
+              摸到最后一下的人<br />获得这条鱼的 <b>最终烹饪权 ↗</b>
+            </div>
+            <button class="round-action" id="roundAction" hidden>
+              查看本轮结果
+            </button>
+          </section>
+          <section class="card">
+            <div class="my">
+              <div class="identity">
+                <div class="avatar">✋</div>
+                <div>
+                  <button id="nickname" aria-label="修改摸鱼昵称">
+                    匿名打工人
+                  </button>
+                  <div class="my-label">本轮摸鱼贡献</div>
+                </div>
+              </div>
+              <strong id="mine">0</strong>
+            </div>
+          </section>
+          <section class="card motto">
+            <div class="quote">“</div>
+            <p id="quote">你的同事还在假装忙碌，<br />你已经取得了实际进展。</p>
+          </section>
+        </aside>
+      </div>
+      <div class="below">
+        <div class="ticker">
+          <span class="ticker-label">鱼塘快讯</span
+          ><span class="ticker-text" id="ticker" aria-live="polite"
+            >你每摸一次鱼，世界上就有一条鱼被摸了一次。</span
+          >
+        </div>
+        <div class="tools">
+          <button id="sound">♫ 音效关</button
+          ><button id="invite">↗ 喊同事来摸</button
+          ><button id="demo">体验最后 20 下</button>
+        </div>
+      </div>
+      <div class="section-head">
+        <h2>它的下场，你先惦记着。<small>The fish is the dish.</small></h2>
+        <button id="recipeHelp">最后一下，才说了算 ↗</button>
+      </div>
+      <div class="recipe-grid">
+        <button class="recipe" data-recipe="红烧">
+          <div class="dish">🍲</div>
+          <div>
+            <strong>红烧</strong>
+            <p>给它一点颜色看看。</p>
+          </div>
+          <span class="votes">浓油赤酱派</span></button
+        ><button class="recipe" data-recipe="清蒸">
+          <div class="dish">🥢</div>
+          <div>
+            <strong>清蒸</strong>
+            <p>它这辈子没出过什么汗。</p>
+          </div>
+          <span class="votes">原汁原味派</span></button
+        ><button class="recipe" data-recipe="剁椒">
+          <div class="dish">🌶️</div>
+          <div>
+            <strong>剁椒</strong>
+            <p>让它最后再红一次。</p>
+          </div>
+          <span class="votes">热辣滚烫派</span></button
+        ><button class="recipe" data-recipe="放生">
+          <div class="dish">🌊</div>
+          <div>
+            <strong>放生</strong>
+            <p>今日功德，直接拉满。</p>
+          </div>
+          <span class="votes">我佛慈悲派</span>
+        </button>
+      </div>
+      <section class="roster">
+        <div class="roster-head">
+          <div>
+            <h2>本处员工，各有各的鱼病。<small>Meet the slackers.</small></h2>
+            <p>每一条，都有自己的班味。今天想跟谁一起躺平？</p>
+          </div>
+          <span class="roster-note"
+            >点击员工卡 · 单独试摸<br />公共鱼塘每轮自动换鱼</span
+          >
+        </div>
+        <div class="fish-roster" id="fishRoster"></div>
+      </section>
+      <footer class="footer">
+        <span>认真摸鱼，也是一种工作态度。</span
+        ><span id="footerStatus"
+          >摸鱼办事处 © 2026 · 为每一次不务正业，正名。</span
+        >
+      </footer>
+    </main>
+    <dialog id="finish">
+      <button class="close" data-close>×</button>
+      <div class="eyebrow">THE LAST TOUCH</div>
+      <h2>这条鱼，你说了算。</h2>
+      <p id="finishText">恭喜你拿下最后一摸。它的鱼生，现在交到你的手上。</p>
+      <div class="modal-grid" id="cookOptions">
+        <button data-cook="红烧">🍲 红烧<small>给它一点颜色看看</small></button
+        ><button data-cook="清蒸">🥢 清蒸<small>主打一个清清白白</small></button
+        ><button data-cook="剁椒">🌶️ 剁椒<small>让它最后再红一次</small></button
+        ><button data-cook="放生">
+          🌊 放生<small>同事白忙，功德归你</small>
+        </button>
+      </div>
+      <p id="waitText" hidden>鱼已摸完，正在等待最后一摸的人决定命运。</p>
+    </dialog>
+    <dialog id="result">
+      <button class="close" data-close>×</button>
+      <div class="result">
+        <div class="eyebrow">A FISH TO REMEMBER</div>
+        <div class="plate" id="resultEmoji">🍲</div>
+        <h2 id="resultTitle">鱼大福，光荣出锅。</h2>
+        <p id="resultCopy"></p>
+        <div class="certificate" id="certificate"></div>
+        <button class="primary" id="next">下一条鱼，继续上班</button>
+      </div>
+    </dialog>
+    <dialog id="archiveModal">
+      <button class="close" data-close>×</button>
+      <div class="eyebrow">FISH FILES</div>
+      <h2>鱼生档案</h2>
+      <p>每一条鱼，都有打工人共同努力的痕迹。</p>
+      <div id="archiveList"></div>
+    </dialog>
+    <dialog id="nameModal">
+      <button class="close" data-close>×</button>
+      <h2>鱼塘怎么称呼你？</h2>
+      <p>留个摸鱼化名，出锅的时候好记你一功。</p>
+      <input
+        class="name-input"
+        id="nameInput"
+        maxlength="16"
+        placeholder="例如：正在开会的王总"
+      /><button class="primary" id="saveName">就叫这个</button>
+    </dialog>
+    <div class="work-page" id="workPage">
+      <div style="color: #7d8898; font-size: 12px">
+        WORKSPACE / PROJECT MANAGEMENT
+      </div>
+      <h1>2026 年 Q4 项目推进与执行进度表</h1>
+      <p style="font-size: 13px; color: #888; margin-bottom: 30px">
+        部门协同 · 周度执行进展 · 内部资料
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>项目模块</th>
+            <th>负责人</th>
+            <th>进展</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>需求分析与业务梳理</td>
+            <td>项目组</td>
+            <td><div class="bar"></div></td>
+            <td>进行中</td>
+          </tr>
+          <tr>
+            <td>核心能力建设</td>
+            <td>研发组</td>
+            <td><div class="bar" style="width: 62%"></div></td>
+            <td>按计划推进</td>
+          </tr>
+          <tr>
+            <td>数据指标与效果评估</td>
+            <td>数据组</td>
+            <td><div class="bar" style="width: 85%"></div></td>
+            <td>持续跟进</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 11px; color: #aaa; position: absolute; bottom: 20px">
+        内部工作视图 · 按 Esc 返回
+      </p>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

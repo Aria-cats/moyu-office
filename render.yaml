@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: moyu-office
+    runtime: python
+    plan: starter
+    region: singapore
+    numInstances: 1
+    buildCommand: python -c "print('Moyu uses the Python standard library')"
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.12
+      - key: MOYU_DB
+        value: /var/data/moyu.sqlite3
+      - key: MOYU_TARGET
+        value: "10000"
+      - key: MOYU_CHOICE_SECONDS
+        value: "180"
+      - key: MOYU_SECURE_COOKIE
+        value: "1"
+    disk:
+      name: pond-data
+      mountPath: /var/data
+      sizeGB: 1

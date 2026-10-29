@@ -1,0 +1,30 @@
+services:
+  moyu:
+    build: .
+    environment:
+      MOYU_TARGET: "10000"
+      MOYU_CHOICE_SECONDS: "180"
+      MOYU_SECURE_COOKIE: "1"
+    expose:
+      - "8765"
+    volumes:
+      - pond-data:/data
+    restart: unless-stopped
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN to your domain name}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - moyu
+    restart: unless-stopped
+volumes:
+  pond-data:
+  caddy-data:
+  caddy-config:

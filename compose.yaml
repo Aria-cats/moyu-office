@@ -1,0 +1,13 @@
+services:
+  moyu:
+    build: .
+    ports:
+      - "8765:8765"
+    environment:
+      MOYU_TARGET: "10000"
+      MOYU_CHOICE_SECONDS: "180"
+    volumes:
+      - pond-data:/data
+    restart: unless-stopped
+volumes:
+  pond-data:
