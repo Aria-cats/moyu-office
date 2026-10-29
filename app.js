@@ -273,7 +273,7 @@ document.querySelectorAll("[data-species]").forEach(
       save();
       render(local);
       $(".aquarium").scrollIntoView({ behavior: "smooth", block: "center" });
-      toast("进入" + fishFor(local).name + "的单独试摸，不影响公共鱼塘。");
+      toast("先自己摸摸" + fishFor(local).name + "，摸满 20 下就能选做法。");
     }),
 );
 function render(s) {
@@ -303,15 +303,21 @@ function render(s) {
     "待摸 " + fmt(Math.max(0, s.target - s.count)) + " 次";
   $("#fishNumber").textContent = "Fish No. " + String(s.round).padStart(3, "0");
   $("#poolLabel").textContent = demo
-    ? "◌ 体验池 · 20 下快速出锅"
-    : "● 今日公共鱼塘";
-  $("#demo").textContent = staticMode
-    ? "本机体验池"
-    : demo
-      ? "返回公共鱼塘"
-      : "体验最后 20 下";
+    ? "◌ 自己先试摸 · 20 下选做法"
+    : "● 和大家一起摸";
+  $("#playGuide").textContent = demo
+    ? "这条鱼只由你来摸。摸满 20 下，试试亲自决定它的命运。"
+    : `大家一起摸够 ${fmt(s.target)} 下，最后一下的人决定红烧、清蒸，还是放生。`;
+  $("#progressLabel").textContent = demo ? "你已经摸了" : "大家已经摸了";
+  $("#playRule").innerHTML = demo
+    ? "摸满 20 下<br /><b>想怎么做这条鱼，由你决定。</b>"
+    : "抢到最后一下<br /><b>这条鱼怎么做，你说了算。</b>";
+  $("#demo").hidden = staticMode;
+  $("#demo").textContent = demo ? "回去和大家一起摸" : "先试摸（20 下）";
+  $("#invite").textContent = staticMode ? "↗ 分享试玩" : "↗ 喊同事来摸";
+  $("#next").textContent = demo ? "再试摸一条" : "和大家继续摸下一条";
   $("#connection").textContent = demo
-    ? "体验池 · 进度仅保存在本机"
+    ? "先自己试试，摸完 20 下就能选做法"
     : `${s.participants || 0} 位打工人参与了本轮摸鱼`;
   $("#mood").innerHTML =
     "鱼的状态：<strong>" +
@@ -618,8 +624,9 @@ async function refresh() {
         demo = true;
         mode = "demo";
         render(local);
-        $("#footerStatus").textContent = "单机试玩版 · 进度保存在此浏览器";
-        toast("欢迎进入单机体验池，摸 20 下就能出锅。");
+        $("#footerStatus").textContent =
+          "当前只能自己试玩，暂时不能和其他人一起摸。";
+        toast("先自己试一条，摸满 20 下就能选做法。");
       } else $("#connection").textContent = "连接中断 · 正在重连";
     }
   } finally {
@@ -636,12 +643,16 @@ function showResult(s) {
     ? "最后一摸的人下班了。超过了选择时间，鱼塘决定替它放个生。"
     : s.dish === "放生"
       ? "鱼已回到河里。由于失去记忆，明天仍可继续参与本项目。"
-      : "从带薪摸鱼，到集体加餐。这一锅，每个打工人都有份。";
+      : demo
+        ? "做法你已经学会了。和大家一起玩时，记得抢最后一下！"
+        : "从带薪摸鱼，到集体加餐。这一锅，每个打工人都有份。";
   $("#certificate").replaceChildren();
   const title = document.createElement("p");
   title.textContent = `第 ${s.round} 条鱼 · ${fishFor(s).name} · ${s.dish}收场`;
   const detail = document.createElement("p");
-  detail.textContent = `${s.participants} 人共同摸了 ${fmt(s.target)} 下`;
+  detail.textContent = demo
+    ? `这次试摸，你一共摸了 ${fmt(s.target)} 下`
+    : `${s.participants} 人共同摸了 ${fmt(s.target)} 下`;
   const winner = document.createElement("p");
   winner.textContent = `最后一摸：${s.winnerName || "匿名打工人"}`;
   $("#certificate").append(title, detail, winner);
@@ -712,7 +723,7 @@ $("#next").onclick = async () => {
 };
 $("#demo").onclick = () => {
   if (staticMode) {
-    toast("当前是单机试玩站；多人共享版需要运行服务端。");
+    toast("当前只能自己试玩，暂时不能和其他人一起摸。");
     return;
   }
   const enter = !demo;
@@ -723,8 +734,8 @@ $("#demo").onclick = () => {
   else refresh();
   toast(
     demo
-      ? "进入体验池：摸 20 下即可体验完整鱼生"
-      : "已回到公共鱼塘，大家的进度都在这里",
+      ? "这条先自己摸。满 20 下，就能决定它的做法。"
+      : "回来啦！继续和大家摸同一条鱼。",
   );
 };
 $("#sound").onclick = () => {
@@ -733,9 +744,20 @@ $("#sound").onclick = () => {
   $("#sound").classList.toggle("sound-on", sound);
 };
 $("#invite").onclick = async () => {
+  if (
+    ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname) ||
+    location.protocol === "file:"
+  ) {
+    toast("这个试玩页还没上线，暂时不能邀请同事。先自己试摸一条吧。");
+    return;
+  }
   try {
     await navigator.clipboard.writeText(location.href);
-    toast("链接已复制，喊同事一起来摸鱼！");
+    toast(
+      staticMode
+        ? "试玩链接已复制，发给朋友试试吧！"
+        : "链接已复制，喊同事一起来摸鱼！",
+    );
   } catch (e) {
     toast("复制浏览器地址，喊同事一起来摸鱼吧");
   }
@@ -855,7 +877,9 @@ document.querySelectorAll(".recipe").forEach(
 );
 $("#recipeHelp").onclick = () =>
   toast(
-    "每摸一下贡献 1 次；最后一摸的人决定做法。想先尝鲜？点「体验最后 20 下」。",
+    demo
+      ? "这条鱼只由你来摸，摸满 20 下就能选做法。"
+      : "大家的点击数加在一起，抢到最后一下的人选做法。想先看看怎么玩？点「先试摸（20 下）」。",
   );
 $("#archive").onclick = () => {
   const list = $("#archiveList");
@@ -919,7 +943,7 @@ if (location.protocol === "file:") {
   staticMode = true;
   demo = true;
   mode = "demo";
-  $("#footerStatus").textContent = "本地体验模式 · 启动服务后可使用共享鱼塘";
+  $("#footerStatus").textContent = "当前只能自己试玩，暂时不能和其他人一起摸。";
   render(local);
 } else {
   refresh();

@@ -143,6 +143,8 @@ h1 em {
   color: var(--muted);
   font-size: 13px;
   letter-spacing: 1px;
+  line-height: 1.9;
+  max-width: 640px;
 }
 .online {
   color: #6f7e62;

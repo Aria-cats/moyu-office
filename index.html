@@ -93,7 +93,9 @@
         <div>
           <div class="eyebrow">A LITTLE BREAK, A LITTLE FISH.</div>
           <h1>上班的事先放放，<em>摸条鱼吧。</em></h1>
-          <div class="sub">你摸的每一下，都在决定它的下场。</div>
+          <div class="sub" id="playGuide">
+            大家一起摸够 10,000 下，最后一下的人决定红烧、清蒸，还是放生。
+          </div>
         </div>
         <div class="online">
           <i class="dot"></i><span id="connection">正在连接鱼塘</span>
@@ -102,7 +104,7 @@
       <div class="layout">
         <section class="aquarium">
           <div class="tank-head">
-            <span class="tag" id="poolLabel">● 今日公共鱼塘</span
+            <span class="tag" id="poolLabel">● 和大家一起摸</span
             ><span class="number" id="fishNumber">Fish No. 001</span>
           </div>
           <div class="tank-title">
@@ -251,7 +253,7 @@
         </section>
         <aside class="side">
           <section class="card">
-            <div class="small-label">距离下锅，还差你的几下</div>
+            <div class="small-label" id="progressLabel">大家已经摸了</div>
             <div class="progress-count">
               <strong id="count">0</strong
               ><span>/ <span id="target">10,000</span></span>
@@ -261,8 +263,8 @@
               <span id="percent">0% 已摸</span
               ><span id="remaining">待摸 10,000 次</span>
             </div>
-            <div class="rule">
-              摸到最后一下的人<br />获得这条鱼的 <b>最终烹饪权 ↗</b>
+            <div class="rule" id="playRule">
+              抢到最后一下<br /><b>这条鱼怎么做，你说了算。</b>
             </div>
             <button class="round-action" id="roundAction" hidden>
               查看本轮结果
@@ -276,7 +278,7 @@
                   <button id="nickname" aria-label="修改摸鱼昵称">
                     匿名打工人
                   </button>
-                  <div class="my-label">本轮摸鱼贡献</div>
+                  <div class="my-label">这条鱼，我摸了</div>
                 </div>
               </div>
               <strong id="mine">0</strong>
@@ -298,7 +300,7 @@
         <div class="tools">
           <button id="sound">♫ 音效关</button
           ><button id="invite">↗ 喊同事来摸</button
-          ><button id="demo">体验最后 20 下</button>
+          ><button id="demo">先试摸（20 下）</button>
         </div>
       </div>
       <div class="section-head">
@@ -343,7 +345,7 @@
             <p>每一条，都有自己的班味。今天想跟谁一起躺平？</p>
           </div>
           <span class="roster-note"
-            >点击员工卡 · 单独试摸<br />公共鱼塘每轮自动换鱼</span
+            >点一条，自己先试摸 20 下<br />摸完就能选做法</span
           >
         </div>
         <div class="fish-roster" id="fishRoster"></div>
