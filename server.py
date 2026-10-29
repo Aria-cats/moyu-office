@@ -19,9 +19,11 @@ DB = Path(os.environ.get('MOYU_DB', str(ROOT / 'moyu.sqlite3')))
 TARGET = max(1, int(os.environ.get('MOYU_TARGET', '10000')))
 CHOICE_SECONDS = max(1, int(os.environ.get('MOYU_CHOICE_SECONDS', '180')))
 RATE = max(1, float(os.environ.get('MOYU_RATE', '8')))
+ALLOWED_ORIGINS = frozenset(filter(None, (origin.strip() for origin in os.environ.get('MOYU_ALLOWED_ORIGINS', '').split(','))))
 DISHES = ('红烧', '清蒸', '剁椒', '放生')
 STATIC = {'/': ('index.html', 'text/html'), '/index.html': ('index.html', 'text/html'),
-          '/app.js': ('app.js', 'text/javascript'), '/style.css': ('style.css', 'text/css')}
+          '/app.js': ('app.js', 'text/javascript'), '/style.css': ('style.css', 'text/css'),
+          '/config.js': ('config.js', 'text/javascript'), '/api.js': ('api.js', 'text/javascript')}
 
 
 def connect():
@@ -108,6 +110,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'same-origin')
         self.send_header('X-Frame-Options', 'DENY')
+        origin = self.headers.get('Origin')
+        if origin and origin in ALLOWED_ORIGINS:
+            self.send_header('Access-Control-Allow-Origin', origin)
+            self.send_header('Access-Control-Allow-Credentials', 'true')
+            self.send_header('Vary', 'Origin')
         if self.new_cookie:
             secure = '; Secure' if os.environ.get('MOYU_SECURE_COOKIE') == '1' else ''
             self.send_header('Set-Cookie', f'moyu_session={self.new_cookie}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000{secure}')
@@ -139,6 +146,22 @@ class Handler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.do_GET()
 
+    def do_OPTIONS(self):
+        if self.headers.get('Origin') not in ALLOWED_ORIGINS or urlparse(self.path).path not in ('/api/state', '/api/touch', '/api/cook', '/api/next'):
+            return self.reply({'error': '请从本站参与摸鱼'}, 403)
+        method = self.headers.get('Access-Control-Request-Method', '')
+        headers = {h.strip().lower() for h in self.headers.get('Access-Control-Request-Headers', '').split(',') if h.strip()}
+        if method not in ('GET', 'POST') or not headers.issubset({'content-type'}):
+            return self.reply({'error': '不支持的请求'}, 403)
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', self.headers['Origin'])
+        self.send_header('Access-Control-Allow-Credentials', 'true')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Vary', 'Origin')
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+
     def do_GET(self):
         path = urlparse(self.path).path
         try:
@@ -165,7 +188,7 @@ class Handler(BaseHTTPRequestHandler):
         if path not in ('/api/touch', '/api/cook', '/api/next'):
             return self.reply({'error': '未知操作'}, 404)
         origin = self.headers.get('Origin')
-        if (origin and urlparse(origin).netloc != self.headers.get('Host')) or self.headers.get('Sec-Fetch-Site') == 'cross-site':
+        if origin not in ALLOWED_ORIGINS and ((origin and urlparse(origin).netloc != self.headers.get('Host')) or self.headers.get('Sec-Fetch-Site') == 'cross-site'):
             return self.reply({'error': '请从本站参与摸鱼'}, 403)
         if self.headers.get_content_type() != 'application/json':
             return self.reply({'error': '请使用 JSON 请求'}, 415)

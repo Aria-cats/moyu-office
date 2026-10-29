@@ -19,67 +19,20 @@ function eventId() {
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
-const player = storage.get("moyuPlayer") || eventId();
-storage.set("moyuPlayer", player);
+const pond = window.createMoyuApi(window.MOYU_CONFIG);
 let nickname = storage.get("moyuName") || "匿名打工人",
   state = null,
-  demo = false,
   sound = false,
   audio = null,
-  mode = "shared",
   history = [],
   lastChoice = "",
-  completionShown = "",
-  finishShown = "",
+  completionShown = null,
+  finishShown = null,
   viewEpoch = 0,
-  staticMode = false,
   refreshing = false,
+  connected = false,
   bossMode = false,
   bossSnapshot = null;
-const demoKey = "moyuDemoV1";
-function freshLocal(round = 1, species = 0, history = []) {
-  return {
-    round,
-    count: 0,
-    target: 20,
-    mine: 0,
-    participants: 0,
-    canChoose: false,
-    winner: null,
-    dish: null,
-    history,
-    species,
-  };
-}
-function loadLocal() {
-  try {
-    const s = JSON.parse(storage.get(demoKey));
-    if (
-      !s ||
-      !Number.isInteger(s.round) ||
-      s.round < 1 ||
-      s.target !== 20 ||
-      !Number.isInteger(s.count) ||
-      s.count < 0 ||
-      s.count > 20 ||
-      !Array.isArray(s.history)
-    )
-      return freshLocal();
-    s.species =
-      Number.isInteger(s.species) && s.species >= 0
-        ? s.species % 5
-        : (s.round - 1) % 5;
-    s.canChoose = s.count === 20;
-    s.mine = s.count;
-    s.participants = s.count ? 1 : 0;
-    if (s.dish && !["红烧", "清蒸", "剁椒", "放生"].includes(s.dish))
-      s.dish = null;
-    return s;
-  } catch {
-    return freshLocal();
-  }
-}
-let local = loadLocal();
 $("#nickname").textContent = nickname;
 $("#nickname").style.cursor = "pointer";
 const lines = [
@@ -102,31 +55,34 @@ function toast(s) {
   clearTimeout(window.tt);
   window.tt = setTimeout(() => $("#toast").classList.remove("show"), 2600);
 }
-function save() {
-  storage.set(demoKey, JSON.stringify(local));
+function setConnection(online) {
+  connected = online;
+  $("#connectionNotice").hidden = online;
+  $("#fish").disabled =
+    !online || !state || !!state.dish || state.count >= state.target;
+  document
+    .querySelectorAll("[data-cook]")
+    .forEach((button) => (button.disabled = !online));
+  $("#next").disabled = !online;
+  if (!online) {
+    $("#connection").textContent = "暂时连不上大家，正在重试";
+    $("#connectionMessage").textContent = state
+      ? "暂时连不上大家，先停一下。连上后就能继续摸这条鱼。"
+      : "鱼塘还没连上，等大家集合后一起开摸。";
+  } else {
+    $("#connection").textContent =
+      `${state?.participants || 0} 位打工人参与了本轮摸鱼`;
+  }
 }
-async function api(path, data) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6500);
-  try {
-    const r = await fetch("/api/" + path, {
-      method: data ? "POST" : "GET",
-      headers: { "Content-Type": "application/json" },
-      body: data ? JSON.stringify({ ...data, name: nickname }) : undefined,
-      signal: controller.signal,
-    });
-    if (!r.ok) {
-      let message = "鱼塘连接失败";
-      try {
-        message = (await r.json()).error || message;
-      } catch {}
-      const e = new Error(message);
-      e.status = r.status;
-      throw e;
-    }
-    return await r.json();
-  } finally {
-    clearTimeout(timeout);
+function handleConnectionError(error) {
+  if (
+    !error.status ||
+    error.status === 401 ||
+    error.status === 404 ||
+    error.status >= 500
+  ) {
+    setConnection(false);
+    pending.length = 0;
   }
 }
 const fishes = [
@@ -182,10 +138,7 @@ const fishes = [
   },
 ];
 function fishFor(s) {
-  return fishes[
-    (demo && Number.isInteger(s.species) ? s.species : s.round - 1) %
-      fishes.length
-  ];
+  return fishes[(s.round - 1) % fishes.length];
 }
 function drawing(f, id = "fishdraw", scales = true) {
   const puffer = f.kind === "puffer",
@@ -224,8 +177,8 @@ function drawing(f, id = "fishdraw", scales = true) {
 let drawnFish = "";
 function updateFish(s) {
   const f = fishFor(s);
-  if (drawnFish !== mode + f.kind) {
-    drawnFish = mode + f.kind;
+  if (drawnFish !== f.kind) {
+    drawnFish = f.kind;
     $("#fishSvg").setAttribute("viewBox", "60 30 580 220");
     $("#fishSvg").innerHTML = drawing(f, "hero");
     $("#speech").textContent = f.line;
@@ -241,7 +194,7 @@ function updateFish(s) {
 $("#fishRoster").innerHTML = fishes
   .map(
     (f, i) =>
-      `<button class="fish-card" data-species="${i}" aria-label="试摸${f.name}"><span class="employee">EMPLOYEE / 00${i + 1}</span><svg viewBox="0 0 680 280" aria-hidden="true">${drawing(f, "card" + i, false)}</svg><strong>${f.name}</strong><p>${f.type}</p></button>`,
+      `<article class="fish-card"><span class="employee">EMPLOYEE / 00${i + 1}</span><svg viewBox="0 0 680 280" aria-hidden="true">${drawing(f, "card" + i, false)}</svg><strong>${f.name}</strong><p>${f.type}</p></article>`,
   )
   .join("");
 function resetView() {
@@ -259,24 +212,8 @@ function resetView() {
   $("#finish").close();
   $("#result").close();
 }
-document.querySelectorAll("[data-species]").forEach(
-  (b) =>
-    (b.onclick = () => {
-      resetView();
-      demo = true;
-      mode = "demo";
-      local = freshLocal(
-        local.round + 1,
-        Number(b.dataset.species),
-        local.history,
-      );
-      save();
-      render(local);
-      $(".aquarium").scrollIntoView({ behavior: "smooth", block: "center" });
-      toast("先自己摸摸" + fishFor(local).name + "，摸满 20 下就能选做法。");
-    }),
-);
 function render(s) {
+  setConnection(true);
   if (
     state &&
     (s.round < state.round ||
@@ -302,23 +239,10 @@ function render(s) {
   $("#remaining").textContent =
     "待摸 " + fmt(Math.max(0, s.target - s.count)) + " 次";
   $("#fishNumber").textContent = "Fish No. " + String(s.round).padStart(3, "0");
-  $("#poolLabel").textContent = demo
-    ? "◌ 自己先试摸 · 20 下选做法"
-    : "● 和大家一起摸";
-  $("#playGuide").textContent = demo
-    ? "这条鱼只由你来摸。摸满 20 下，试试亲自决定它的命运。"
-    : `大家一起摸够 ${fmt(s.target)} 下，最后一下的人决定红烧、清蒸，还是放生。`;
-  $("#progressLabel").textContent = demo ? "你已经摸了" : "大家已经摸了";
-  $("#playRule").innerHTML = demo
-    ? "摸满 20 下<br /><b>想怎么做这条鱼，由你决定。</b>"
-    : "抢到最后一下<br /><b>这条鱼怎么做，你说了算。</b>";
-  $("#demo").hidden = staticMode;
-  $("#demo").textContent = demo ? "回去和大家一起摸" : "先试摸（20 下）";
-  $("#invite").textContent = staticMode ? "↗ 分享试玩" : "↗ 喊同事来摸";
-  $("#next").textContent = demo ? "再试摸一条" : "和大家继续摸下一条";
-  $("#connection").textContent = demo
-    ? "先自己试试，摸完 20 下就能选做法"
-    : `${s.participants || 0} 位打工人参与了本轮摸鱼`;
+  $("#playGuide").textContent =
+    `大家一起摸够 ${fmt(s.target)} 下，最后一下的人决定红烧、清蒸，还是放生。`;
+  $("#connection").textContent =
+    `${s.participants || 0} 位打工人参与了本轮摸鱼`;
   $("#mood").innerHTML =
     "鱼的状态：<strong>" +
     (s.dish
@@ -352,23 +276,20 @@ function render(s) {
     $("#waitText").textContent =
       `正在等最后一摸的人决定。${s.choiceRemaining ?? 180} 秒后仍未决定，就替这条鱼放个生。`;
     $("#finishText").textContent = s.canChoose
-      ? `最后一摸被你拿下了！${demo ? "" : `请在 ${s.choiceRemaining ?? 180} 秒内`}决定它的鱼生。`
+      ? `最后一摸被你拿下了！请在 ${s.choiceRemaining ?? 180} 秒内决定它的鱼生。`
       : "锅都热好了，就等最后一摸的人发话。";
-    if (
-      finishShown !== mode + s.round &&
-      !document.querySelector("dialog[open]")
-    ) {
-      finishShown = mode + s.round;
+    if (finishShown !== s.round && !document.querySelector("dialog[open]")) {
+      finishShown = s.round;
       $("#finish").showModal();
     }
   }
   if (s.dish) {
     $("#finish").close();
     if (
-      completionShown !== mode + s.round &&
+      completionShown !== s.round &&
       !document.querySelector("dialog[open]")
     ) {
-      completionShown = mode + s.round;
+      completionShown = s.round;
       showResult(s);
     }
   }
@@ -553,7 +474,11 @@ async function drain() {
         let s;
         for (let attempt = 0; attempt < 2; attempt++) {
           try {
-            s = await api("touch", { round: item.round, event: item.event });
+            s = await pond.touch({
+              round: item.round,
+              event: item.event,
+              name: nickname,
+            });
             break;
           } catch (e) {
             if (attempt === 1 || e.status) throw e;
@@ -564,6 +489,7 @@ async function drain() {
         render(s);
       } catch (e) {
         if (item.epoch === viewEpoch) {
+          handleConnectionError(e);
           toast(
             e.name === "AbortError" ? "连接有点慢，请稍后再摸。" : e.message,
           );
@@ -576,7 +502,7 @@ async function drain() {
   }
 }
 function pat(e) {
-  if (!state || state.count >= state.target || bossMode) return;
+  if (!connected || !state || state.count >= state.target || bossMode) return;
   if (pending.length >= 16) {
     toast("慢一点，鱼正在消化你的热情。");
     return;
@@ -585,54 +511,32 @@ function pat(e) {
     x = e?.clientX || r.x + r.width * 0.6,
     y = e?.clientY || r.y + r.height * 0.5;
   react(x, y);
-  if (demo) {
-    local.count++;
-    local.mine++;
-    local.participants = 1;
-    if (local.count === local.target) {
-      local.winner = player;
-      local.canChoose = true;
-      local.winnerName = nickname;
-    }
-    save();
-    render(local);
-    point(x, y);
-  } else {
-    pending.push({
-      round: state.round,
-      event: eventId(),
-      epoch: viewEpoch,
-      x,
-      y,
-    });
-    drain();
-  }
+  pending.push({
+    round: state.round,
+    event: eventId(),
+    epoch: viewEpoch,
+    x,
+    y,
+  });
+  drain();
 }
 $("#fish").onclick = pat;
 async function refresh() {
-  if (demo || refreshing || processing) return;
+  if (refreshing || processing) return;
   refreshing = true;
+  $("#reconnect").disabled = true;
   const epoch = viewEpoch;
   try {
-    const s = await api("state");
-    if (epoch === viewEpoch && !demo) render(s);
-  } catch (e) {
-    if (epoch === viewEpoch && !demo) {
-      if (e.status === 404) {
-        staticMode = true;
-        resetView();
-        demo = true;
-        mode = "demo";
-        render(local);
-        $("#footerStatus").textContent =
-          "当前只能自己试玩，暂时不能和其他人一起摸。";
-        toast("先自己试一条，摸满 20 下就能选做法。");
-      } else $("#connection").textContent = "连接中断 · 正在重连";
-    }
+    const s = await pond.getState();
+    if (epoch === viewEpoch) render(s);
+  } catch {
+    if (epoch === viewEpoch) setConnection(false);
   } finally {
     refreshing = false;
+    $("#reconnect").disabled = false;
   }
 }
+$("#reconnect").onclick = refresh;
 function showResult(s) {
   if (bossMode) return;
   $("#resultEmoji").innerHTML =
@@ -643,100 +547,53 @@ function showResult(s) {
     ? "最后一摸的人下班了。超过了选择时间，鱼塘决定替它放个生。"
     : s.dish === "放生"
       ? "鱼已回到河里。由于失去记忆，明天仍可继续参与本项目。"
-      : demo
-        ? "做法你已经学会了。和大家一起玩时，记得抢最后一下！"
-        : "从带薪摸鱼，到集体加餐。这一锅，每个打工人都有份。";
+      : "从带薪摸鱼，到集体加餐。这一锅，每个打工人都有份。";
   $("#certificate").replaceChildren();
   const title = document.createElement("p");
   title.textContent = `第 ${s.round} 条鱼 · ${fishFor(s).name} · ${s.dish}收场`;
   const detail = document.createElement("p");
-  detail.textContent = demo
-    ? `这次试摸，你一共摸了 ${fmt(s.target)} 下`
-    : `${s.participants} 人共同摸了 ${fmt(s.target)} 下`;
+  detail.textContent = `${s.participants} 人共同摸了 ${fmt(s.target)} 下`;
   const winner = document.createElement("p");
   winner.textContent = `最后一摸：${s.winnerName || "匿名打工人"}`;
   $("#certificate").append(title, detail, winner);
   $("#result").showModal();
 }
-document.querySelectorAll("[data-cook]").forEach(
-  (b) =>
-    (b.onclick = async () => {
-      b.disabled = true;
-      const epoch = viewEpoch;
-      try {
-        const dish = b.dataset.cook;
-        if (demo) {
-          if (!local.canChoose) throw new Error("最后一摸的人才能决定");
-          local.dish = dish;
-          local.history = [
-            {
-              round: local.round,
-              fishName: fishFor(local).name,
-              dish,
-              participants: 1,
-              winnerName: nickname,
-              target: 20,
-            },
-            ...local.history,
-          ].slice(0, 30);
-          save();
-          render(local);
-        } else {
-          const s = await api("cook", { dish, round: state.round });
-          if (epoch === viewEpoch) render(s);
-        }
-      } catch (e) {
-        toast(e.message);
-      } finally {
-        b.disabled = false;
-      }
-    }),
-);
+document.querySelectorAll("[data-cook]").forEach((button) => {
+  button.onclick = async () => {
+    if (!connected || !state?.canChoose) return;
+    button.disabled = true;
+    const epoch = viewEpoch;
+    try {
+      const s = await pond.cook({
+        dish: button.dataset.cook,
+        round: state.round,
+        name: nickname,
+      });
+      if (epoch === viewEpoch) render(s);
+    } catch (error) {
+      handleConnectionError(error);
+      toast(error.message);
+    } finally {
+      button.disabled = !connected;
+    }
+  };
+});
 $("#next").onclick = async () => {
-  if (!state?.dish) return;
+  if (!connected || !state?.dish) return;
   $("#next").disabled = true;
   const epoch = viewEpoch;
   try {
-    if (demo) {
-      const next = freshLocal(
-        local.round + 1,
-        ((local.species ?? local.round - 1) + 1) % fishes.length,
-        local.history,
-      );
+    const s = await pond.next({ round: state.round, name: nickname });
+    if (epoch === viewEpoch) {
       resetView();
-      local = next;
-      save();
-      render(local);
-    } else {
-      const s = await api("next", { round: state.round });
-      if (epoch === viewEpoch) {
-        resetView();
-        render(s);
-      }
+      render(s);
     }
-    $("#result").close();
-  } catch (e) {
-    toast(e.message);
+  } catch (error) {
+    handleConnectionError(error);
+    toast(error.message);
   } finally {
-    $("#next").disabled = false;
+    $("#next").disabled = !connected;
   }
-};
-$("#demo").onclick = () => {
-  if (staticMode) {
-    toast("当前只能自己试玩，暂时不能和其他人一起摸。");
-    return;
-  }
-  const enter = !demo;
-  resetView();
-  demo = enter;
-  mode = demo ? "demo" : "shared";
-  if (demo) render(local);
-  else refresh();
-  toast(
-    demo
-      ? "这条先自己摸。满 20 下，就能决定它的做法。"
-      : "回来啦！继续和大家摸同一条鱼。",
-  );
 };
 $("#sound").onclick = () => {
   sound = !sound;
@@ -748,16 +605,12 @@ $("#invite").onclick = async () => {
     ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname) ||
     location.protocol === "file:"
   ) {
-    toast("这个试玩页还没上线，暂时不能邀请同事。先自己试摸一条吧。");
+    toast("这个网址还没上线，暂时不能邀请同事。上线后大家就能来一起摸。");
     return;
   }
   try {
     await navigator.clipboard.writeText(location.href);
-    toast(
-      staticMode
-        ? "试玩链接已复制，发给朋友试试吧！"
-        : "链接已复制，喊同事一起来摸鱼！",
-    );
+    toast("链接已复制，喊同事一起来摸鱼！");
   } catch (e) {
     toast("复制浏览器地址，喊同事一起来摸鱼吧");
   }
@@ -877,9 +730,7 @@ document.querySelectorAll(".recipe").forEach(
 );
 $("#recipeHelp").onclick = () =>
   toast(
-    demo
-      ? "这条鱼只由你来摸，摸满 20 下就能选做法。"
-      : "大家的点击数加在一起，抢到最后一下的人选做法。想先看看怎么玩？点「先试摸（20 下）」。",
+    "大家摸的次数加在一起，抢到最后一下的人决定做法。点鱼身或按空格，就能帮忙摸一下。",
   );
 $("#archive").onclick = () => {
   const list = $("#archiveList");
@@ -939,13 +790,5 @@ document
 $(".avatar").innerHTML =
   `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 43Q7 33 13 30Q17 29 23 37L19 17Q20 10 24 16L28 32L29 10Q32 5 35 11L35 31L40 14Q44 10 46 16L43 34L49 25Q54 23 55 28L48 47Q44 57 32 56Q20 55 14 43Z" fill="#edbc80" stroke="#9d7850" stroke-width="1.7"/><path d="M25 42q7-7 14 0m-4 4q-3 5-7 0" fill="none" stroke="#9d7850" stroke-width="1.5"/><path d="M7 15l-4-4m8 10H4M53 8l4-4" stroke="#d3a56c" stroke-width="2" stroke-linecap="round"/></svg>`;
 
-if (location.protocol === "file:") {
-  staticMode = true;
-  demo = true;
-  mode = "demo";
-  $("#footerStatus").textContent = "当前只能自己试玩，暂时不能和其他人一起摸。";
-  render(local);
-} else {
-  refresh();
-  setInterval(refresh, 1300);
-}
+refresh();
+setInterval(refresh, pond.pollIntervalMs);

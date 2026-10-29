@@ -41,6 +41,7 @@ class PondTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         app.DB = Path(self.temp.name) / 'pond.sqlite3'
         app.TARGET = 20
+        app.ALLOWED_ORIGINS = frozenset()
         app.RATE = 10000
         app.limiter = app.RateLimiter()
         app.initialize()
@@ -118,6 +119,30 @@ class PondTests(unittest.TestCase):
         statuses = [c.touch(f'rate-event-{i}')[0] for i in range(16)]
         self.assertIn(429, statuses)
         self.assertEqual(c.call('state')[1]['count'], statuses.count(200))
+
+    def test_config_assets_and_explicit_frontend_origin(self):
+        for asset in ('config.js', 'api.js'):
+            with urllib.request.urlopen(self.base + '/' + asset) as r:
+                self.assertEqual(r.status, 200)
+                self.assertIn('javascript', r.headers['Content-Type'])
+        origin = 'https://fish.example.com'
+        app.ALLOWED_ORIGINS = frozenset({origin})
+        request = urllib.request.Request(self.base + '/api/touch', method='OPTIONS', headers={
+            'Origin': origin, 'Access-Control-Request-Method': 'POST',
+            'Access-Control-Request-Headers': 'content-type'})
+        with urllib.request.urlopen(request) as r:
+            self.assertEqual(r.status, 204)
+            self.assertEqual(r.headers['Access-Control-Allow-Origin'], origin)
+            self.assertEqual(r.headers['Access-Control-Allow-Credentials'], 'true')
+        c = Client(self.base)
+        status, state = c.call('touch', {'round': 1, 'event': 'cors-event-0001'}, headers={'Origin': origin})
+        self.assertEqual(status, 200)
+        self.assertEqual(state['count'], 1)
+        self.assertEqual(c.call('touch', {'round': 1, 'event': 'cors-event-0002'}, headers={'Origin': 'https://wrong.example.com'})[0], 403)
+        request.headers['Origin'] = 'https://wrong.example.com'
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(request)
+        self.assertEqual(caught.exception.code, 403)
 
     def test_old_database_schema_migration(self):
         with app.connect() as db:

@@ -1,11 +1,26 @@
-"""Run a local UI regression: browser-use < tests/check_boss.browser.py.
-
-Requires the app on port 8765 and Browser Use's default Chrome connection.
-Creates and closes one isolated test tab. Does not submit shared-pond clicks.
+"""Run from repository root: browser-use < tests/check_boss.browser.py.
+Uses an isolated ephemeral API server/database, never the user's shared pond.
 """
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+import threading
 import time
+import urllib.request
 
-URL = 'http://127.0.0.1:8765/?qa=boss-regression'
+spec = importlib.util.spec_from_file_location('moyu_ui_server', Path.cwd() / 'server.py')
+app = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(app)
+temporary = tempfile.TemporaryDirectory()
+app.DB = Path(temporary.name) / 'ui.sqlite3'
+app.TARGET = 20
+app.RATE = 10000
+app.initialize()
+server = app.ThreadingHTTPServer(('127.0.0.1', 0), app.Handler)
+thread = threading.Thread(target=server.serve_forever, daemon=True)
+thread.start()
+URL = f'http://127.0.0.1:{server.server_address[1]}/?qa=boss-regression'
 new_tab(URL)
 wait_for_load()
 owned = next(t['targetId'] for t in list_tabs() if t.get('url') == URL)
@@ -68,22 +83,39 @@ try:
     print('PASS: unsaved nickname remains intact')
     click('×')
 
-    click('试摸河豚气包')
-    time.sleep(.6)  # Let the intentional smooth scroll finish before locating fish.
-    for _ in range(20):
+    check("!document.querySelector('#demo') && document.querySelectorAll('button[data-species]').length===0", 'there is no solo mode or fish selector')
+    for i in range(20):
         click('摸一下鱼，贡献一次摸鱼')
+        for _ in range(50):
+            if js('state.count') == i + 1: break
+            time.sleep(.05)
+        assert js('state.count') == i + 1
+    with urllib.request.urlopen(URL.split('/?')[0] + '/api/state') as response:
+        observer = json.load(response)
+    assert observer['count'] == 20 and observer['mine'] == 0 and observer['canChoose'] is False
+    print('PASS: a second player sees the same progress but has no winner privilege')
     check("state.count===20 && document.querySelector('#finish').open", 'test fish reaches its final-choice dialog')
     escape()
     check("bossMode && !document.querySelector('dialog[open]')", 'Esc hides the final-choice dialog')
     escape()
     check("!bossMode && document.querySelector('#finish').open", 'return restores an unfinished choice')
     escape()
-    js("render({...state,dish:'放生',autoReleased:true});toast('此消息不能盖住工作页')")
+    with app.connect() as db:
+        db.execute('UPDATE rounds SET finished_at=? WHERE id=1', (time.time() - app.CHOICE_SECONDS - 2,))
+    js("refresh();toast('此消息不能盖住工作页')")
+    for _ in range(50):
+        if js("state.dish==='放生'"):break
+        time.sleep(.05)
     check("bossMode && !document.querySelector('dialog[open]') && !document.querySelector('#toast').classList.contains('show')", 'incoming settlement and toast cannot cover work view')
     escape()
     check("document.querySelector('#result').open && document.querySelector('#resultTitle').textContent.includes('重获自由')", 'return shows the settlement received while away')
     escape()
-    js("render({...state,round:state.round+1,count:0,mine:0,dish:null,canChoose:false,autoReleased:false})")
+    with app.connect() as db:
+        db.execute('INSERT INTO rounds(target) VALUES(?)', (20,))
+    js('refresh()')
+    for _ in range(50):
+        if js('state.round===2'):break
+        time.sleep(.05)
     escape()
     check("!document.querySelector('dialog[open]')", 'old settlement does not reopen after a new round')
 
@@ -102,8 +134,27 @@ try:
     check("(()=>{const r=document.querySelector('#backToPond').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<innerHeight})()", 'return button is visible on a narrow screen')
     click('返回上一页 Esc')
     check('!bossMode', 'narrow-screen return button works')
+    cdp('Network.enable')
+    cdp('Network.emulateNetworkConditions', offline=True, latency=0, downloadThroughput=-1, uploadThroughput=-1)
+    js('refresh()')
+    for _ in range(50):
+        if js('!connected'):break
+        time.sleep(.05)
+    check("!connected && document.querySelector('#fish').disabled && !document.querySelector('#connectionNotice').hidden", 'disconnection pauses play and shows a plain-language notice')
+    assert js('state.count') == count
+    cdp('Network.emulateNetworkConditions', offline=False, latency=0, downloadThroughput=-1, uploadThroughput=-1)
+    js('refresh()')
+    for _ in range(50):
+        if js('connected'):break
+        time.sleep(.05)
+    check("connected && document.querySelector('#connectionNotice').hidden", 'reconnection restores shared play')
     check('__bossErrors.length===0', 'no runtime errors or rejected promises')
 finally:
+    cdp('Network.emulateNetworkConditions', offline=False, latency=0, downloadThroughput=-1, uploadThroughput=-1)
     cdp('Emulation.clearDeviceMetricsOverride')
     cdp('Emulation.setFocusEmulationEnabled', enabled=False)
     cdp('Target.closeTarget', targetId=owned)
+    server.shutdown()
+    server.server_close()
+    thread.join()
+    temporary.cleanup()

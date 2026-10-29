@@ -701,13 +701,7 @@ dialog p {
 .certificate p {
   margin: 5px;
 }
-.demo-badge {
-  background: #e9e6d8;
-  color: #8a8062;
-  padding: 4px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-}
+
 .work-page {
   display: block;
   position: fixed;
@@ -1207,4 +1201,37 @@ dialog p {
     height: 180px;
     margin-top: 105px;
   }
+}
+
+.connection-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border: 1px solid #e5d8b8;
+  border-radius: 12px;
+  background: #faf3df;
+  color: #81734e;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.connection-notice button {
+  flex-shrink: 0;
+  border: 1px solid #d8c9a2;
+  border-radius: 7px;
+  padding: 7px 12px;
+  background: #fffaf0;
+}
+.connection-notice button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.fish-card {
+  cursor: default;
+}
+.fish-btn:disabled {
+  opacity: 0.75;
+  cursor: wait;
 }

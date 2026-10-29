@@ -101,6 +101,10 @@
           <i class="dot"></i><span id="connection">正在连接鱼塘</span>
         </div>
       </section>
+      <div class="connection-notice" id="connectionNotice" role="status">
+        <span id="connectionMessage">正在等大家集合，马上开摸。</span>
+        <button id="reconnect" type="button">再连一次</button>
+      </div>
       <div class="layout">
         <section class="aquarium">
           <div class="tank-head">
@@ -299,8 +303,7 @@
         </div>
         <div class="tools">
           <button id="sound">♫ 音效关</button
-          ><button id="invite">↗ 喊同事来摸</button
-          ><button id="demo">先试摸（20 下）</button>
+          ><button id="invite">↗ 喊同事来摸</button>
         </div>
       </div>
       <div class="section-head">
@@ -345,7 +348,7 @@
             <p>每一条，都有自己的班味。今天想跟谁一起躺平？</p>
           </div>
           <span class="roster-note"
-            >点一条，自己先试摸 20 下<br />摸完就能选做法</span
+            >大家摸完一条，下一位就来接班<br />五位员工，轮流上班</span
           >
         </div>
         <div class="fish-roster" id="fishRoster"></div>
@@ -380,7 +383,7 @@
         <h2 id="resultTitle">鱼大福，光荣出锅。</h2>
         <p id="resultCopy"></p>
         <div class="certificate" id="certificate"></div>
-        <button class="primary" id="next">下一条鱼，继续上班</button>
+        <button class="primary" id="next">和大家继续摸下一条</button>
       </div>
     </dialog>
     <dialog id="archiveModal">
@@ -453,6 +456,8 @@
       </p>
     </section>
     <div class="toast" id="toast" role="status"></div>
+    <script src="./config.js" defer></script>
+    <script src="./api.js" defer></script>
     <script src="./app.js" defer></script>
   </body>
 </html>

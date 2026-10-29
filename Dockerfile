@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 WORKDIR /app
-COPY server.py index.html app.js style.css ./
+COPY server.py index.html app.js api.js config.js style.css ./
 RUN useradd --uid 10001 --create-home moyu && mkdir /data && chown moyu /data
 USER moyu
 ENV PORT=8765 MOYU_DB=/data/moyu.sqlite3 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
