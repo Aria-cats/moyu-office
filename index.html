@@ -77,7 +77,15 @@
       <nav class="nav">
         <button class="active" id="home">今日鱼塘</button
         ><button id="archive">鱼生档案 ↗</button
-        ><button class="boss" id="boss">▦ 老板来了<kbd>Esc</kbd></button>
+        ><button
+          class="boss"
+          id="boss"
+          aria-controls="workPage"
+          aria-expanded="false"
+          title="按 Esc 进入工作视图，再按一次返回"
+        >
+          ▦ 老板来了<kbd>Esc</kbd>
+        </button>
       </nav>
     </header>
     <main>
@@ -391,11 +399,20 @@
         placeholder="例如：正在开会的王总"
       /><button class="primary" id="saveName">就叫这个</button>
     </dialog>
-    <div class="work-page" id="workPage">
-      <div style="color: #7d8898; font-size: 12px">
-        WORKSPACE / PROJECT MANAGEMENT
+    <section
+      class="work-page"
+      id="workPage"
+      hidden
+      tabindex="-1"
+      aria-labelledby="workTitle"
+    >
+      <div class="work-toolbar">
+        <span>WORKSPACE / PROJECT MANAGEMENT</span>
+        <button id="backToPond" type="button" title="退出工作视图，回到鱼塘">
+          返回上一页 <kbd>Esc</kbd>
+        </button>
       </div>
-      <h1>2026 年 Q4 项目推进与执行进度表</h1>
+      <h1 id="workTitle">2026 年 Q4 项目推进与执行进度表</h1>
       <p style="font-size: 13px; color: #888; margin-bottom: 30px">
         部门协同 · 周度执行进展 · 内部资料
       </p>
@@ -429,10 +446,10 @@
           </tr>
         </tbody>
       </table>
-      <p style="font-size: 11px; color: #aaa; position: absolute; bottom: 20px">
-        内部工作视图 · 按 Esc 返回
+      <p class="work-return-hint">
+        按 Esc 或点击右上角「返回上一页」退出工作视图
       </p>
-    </div>
+    </section>
     <div class="toast" id="toast" role="status"></div>
     <script src="./app.js" defer></script>
   </body>

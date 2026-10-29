@@ -707,7 +707,7 @@ dialog p {
   font-size: 10px;
 }
 .work-page {
-  display: none;
+  display: block;
   position: fixed;
   inset: 0;
   z-index: 90;
@@ -715,6 +715,61 @@ dialog p {
   padding: 48px;
   color: #333;
   font-family: Arial, sans-serif;
+  overflow: auto;
+  outline: none;
+}
+.boss-active {
+  overflow: hidden;
+}
+.boss-active .floating,
+.boss-active #toast {
+  display: none !important;
+}
+.boss-active .fish-svg,
+.boss-active .fin,
+.boss-active .tail {
+  animation-play-state: paused;
+}
+.work-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #7d8898;
+  font-size: 12px;
+}
+#backToPond {
+  flex-shrink: 0;
+  border: 1px solid #dbe0e6;
+  background: #f7f9fb;
+  border-radius: 7px;
+  padding: 10px 14px;
+  color: #506071;
+  font-size: 12px;
+}
+#backToPond kbd {
+  margin-left: 10px;
+  color: #84909b;
+}
+.work-return-hint {
+  margin: 28px 0 0;
+  color: #8b96a1;
+  font-size: 12px;
+  line-height: 1.8;
+}
+@media (max-width: 600px) {
+  .work-page {
+    padding: 22px 16px;
+  }
+  .work-toolbar > span {
+    max-width: 150px;
+    font-size: 10px;
+  }
+  .work-page th,
+  .work-page td {
+    padding: 10px 7px;
+    font-size: 11px;
+  }
 }
 .work-page h1 {
   font: 24px Arial;

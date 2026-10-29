@@ -33,7 +33,9 @@ let nickname = storage.get("moyuName") || "匿名打工人",
   finishShown = "",
   viewEpoch = 0,
   staticMode = false,
-  refreshing = false;
+  refreshing = false,
+  bossMode = false,
+  bossSnapshot = null;
 const demoKey = "moyuDemoV1";
 function freshLocal(round = 1, species = 0, history = []) {
   return {
@@ -94,6 +96,7 @@ const lines = [
   "鱼已将紧急联系人修改为市场监管局。",
 ];
 function toast(s) {
+  if (bossMode) return;
   $("#toast").textContent = s;
   $("#toast").classList.add("show");
   clearTimeout(window.tt);
@@ -335,6 +338,8 @@ function render(s) {
     : s.canChoose
       ? "决定鱼的命运"
       : "等待鱼的去向";
+  // Keep receiving shared progress, but never put a modal over the work view.
+  if (bossMode) return;
   if (finished && !s.dish) {
     $("#cookOptions").hidden = !s.canChoose;
     $("#waitText").hidden = s.canChoose;
@@ -565,12 +570,7 @@ async function drain() {
   }
 }
 function pat(e) {
-  if (
-    !state ||
-    state.count >= state.target ||
-    $("#workPage").style.display === "block"
-  )
-    return;
+  if (!state || state.count >= state.target || bossMode) return;
   if (pending.length >= 16) {
     toast("慢一点，鱼正在消化你的热情。");
     return;
@@ -627,6 +627,7 @@ async function refresh() {
   }
 }
 function showResult(s) {
+  if (bossMode) return;
   $("#resultEmoji").innerHTML =
     `<svg viewBox="0 0 64 64" style="width:100px;height:100px" aria-hidden="true">${dishArt[s.dish]}</svg>`;
   $("#resultTitle").textContent =
@@ -739,29 +740,104 @@ $("#invite").onclick = async () => {
     toast("复制浏览器地址，喊同事一起来摸鱼吧");
   }
 };
-$("#boss").onclick = () => {
-  const b = $("#workPage");
-  b.style.display = b.style.display === "block" ? "none" : "block";
-  document.title =
-    b.style.display === "block"
-      ? "Q4 项目推进与执行进度表"
-      : "摸鱼办事处 · 今天也要有所鱼获";
-};
-document.addEventListener("keydown", (e) => {
-  if (e.repeat) return;
-  if (e.key === "Escape") {
-    if (document.querySelector("dialog[open]")) return;
-    $("#boss").click();
+function setBossMode(active) {
+  if (bossMode === active) return;
+  bossMode = active;
+  const workPage = $("#workPage");
+  if (active) {
+    bossSnapshot = {
+      title: document.title,
+      focus: document.activeElement,
+      dialogs: [...document.querySelectorAll("dialog[open]")],
+      epoch: viewEpoch,
+      round: state?.round,
+    };
+    // Native dialogs live above every z-index. Close them before showing cover.
+    bossSnapshot.dialogs.forEach((dialog) => dialog.close());
+    stopReaction();
+    audio?.suspend().catch(() => {});
+    $("#toast").classList.remove("show");
+    document.title = "Q4 项目推进与执行进度表";
   }
+  document.body.classList.toggle("boss-active", active);
+  document
+    .querySelectorAll("header, main")
+    .forEach((el) => (el.inert = active));
+  workPage.hidden = !active;
+  $("#boss").setAttribute("aria-expanded", String(active));
+  if (active) {
+    workPage.focus({ preventScroll: true });
+    return;
+  }
+
+  const previous = bossSnapshot;
+  bossSnapshot = null;
+  document.title = previous?.title || "摸鱼办事处 · 今天也要有所鱼获";
+  if (sound) audio?.resume().catch(() => {});
+  // Restore drafts and still-valid dialogs; an old round must not reappear.
+  if (previous?.epoch === viewEpoch) {
+    for (const dialog of previous.dialogs) {
+      if (dialog.id === "finish" || dialog.id === "result") {
+        if (previous.round !== state?.round) continue;
+        if (dialog.id === "finish" && state?.dish) continue;
+        if (dialog.id === "result" && !state?.dish) continue;
+      }
+      dialog.showModal();
+    }
+  }
+  if (state) render(state);
+  const openDialog = document.querySelector("dialog[open]");
+  const focus = previous?.focus;
   if (
-    e.code === "Space" &&
-    !["INPUT", "BUTTON", "TEXTAREA"].includes(document.activeElement.tagName) &&
-    !document.querySelector("dialog[open]") &&
-    $("#workPage").style.display !== "block"
+    focus?.isConnected &&
+    !focus.disabled &&
+    (!openDialog || openDialog.contains(focus))
   ) {
-    e.preventDefault();
-    pat();
+    focus.focus({ preventScroll: true });
+  } else if (!openDialog) {
+    $("#boss").focus({ preventScroll: true });
   }
+}
+$("#boss").onclick = () => setBossMode(true);
+$("#backToPond").onclick = () => setBossMode(false);
+window.addEventListener(
+  "keydown",
+  (e) => {
+    if (e.key === "Escape") {
+      // Handle before the browser's default dialog-cancel action, even in inputs.
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!e.repeat) setBossMode(!bossMode);
+      return;
+    }
+    if (bossMode) {
+      // Tab stays inside the cover. Space must never activate the fish behind it.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        $("#backToPond").focus();
+      }
+      return;
+    }
+    if (e.repeat) return;
+    if (
+      e.code === "Space" &&
+      !["INPUT", "BUTTON", "TEXTAREA"].includes(
+        document.activeElement.tagName,
+      ) &&
+      !document.activeElement.isContentEditable &&
+      !document.querySelector("dialog[open]")
+    ) {
+      e.preventDefault();
+      pat();
+    }
+  },
+  { capture: true },
+);
+document.querySelectorAll("dialog").forEach((dialog) => {
+  dialog.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    setBossMode(true);
+  });
 });
 document
   .querySelectorAll("[data-close]")
