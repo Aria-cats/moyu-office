@@ -8,7 +8,7 @@
       content="五条有班味的鱼、六种摸鱼姿势。一起摸到最后一下，决定这条鱼的命运。"
     />
     <title>摸鱼办事处 · 今天也要有所鱼获</title>
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./style.css?v=15066594d0" />
   </head>
   <body>
     <header>
@@ -112,13 +112,15 @@
             <span class="tag" id="poolLabel">● 和大家一起摸</span
             ><span class="number" id="fishNumber">Fish No. 001</span>
           </div>
-          <div class="tank-title">
-            <strong id="fishName">这位是，鱼大福。</strong>
-            <p id="fishSubtitle">一条正在接受职场按摩的草鱼</p>
-          </div>
           <div class="water-word">just keep touching.</div>
-          <div class="bubble-speech" id="speech" aria-live="polite">
-            上班辛苦了。你也是，我也是。
+          <div class="fish-caption">
+            <div class="tank-title">
+              <strong id="fishName">这位是，鱼大福。</strong>
+              <p id="fishSubtitle">一条正在接受职场按摩的草鱼</p>
+            </div>
+            <div class="bubble-speech" id="speech" aria-live="polite">
+              上班辛苦了。你也是，我也是。
+            </div>
           </div>
           <div class="milestone" id="milestone" role="status">轻轻摸一下，看看它的小脾气。</div>
           <div class="fish-zone">
@@ -243,6 +245,14 @@
                 />
               </svg>
             </button>
+            <div id="reactionProp" aria-hidden="true">
+              <div class="prop-fax"><i class="fax-body"></i><i class="fax-output"></i></div>
+              <div class="prop-orbit"><i class="orbit-moon"></i></div>
+              <div class="prop-scan"><i class="scan-beam"></i><span class="scan-tag">¥ 0.00</span></div>
+              <div class="prop-toast"><i class="toaster-steam"></i><i class="toaster-body"></i></div>
+              <div class="prop-stamp">已阅</div>
+              <div class="prop-signal"><i class="signal-battery"></i><i class="signal-pixels"></i></div>
+            </div>
           </div>
           <div class="combo" id="combo" aria-live="polite"></div>
           <div class="hint">
@@ -468,6 +478,6 @@
     <script src="./cloudbase.full.js" defer></script>
     <script src="./cloud-transport.js" defer></script>
     <script src="./api.js" defer></script>
-    <script src="./app.js" defer></script>
+    <script src="./app.js?v=79a14ba64f" defer></script>
   </body>
 </html>
