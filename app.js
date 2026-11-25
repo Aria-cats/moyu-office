@@ -35,19 +35,6 @@ let nickname = storage.get("moyuName") || "匿名打工人",
   bossSnapshot = null;
 $("#nickname").textContent = nickname;
 $("#nickname").style.cursor = "pointer";
-const lines = [
-  "你每摸一次鱼，世界上就有一条鱼被摸了一次。",
-  "本次摸鱼已计入工时。",
-  "鱼鳞 -1，班味 -1。",
-  "检测到你正在工作，已为你自动纠正。",
-  "鱼说可以，但没说可以一直。",
-  "恭喜，你在本次会议中完成了唯一一件实事。",
-  "这条鱼已经没有隐私了。",
-  "你的老板少了一秒，你的人生多了一秒。",
-  "摸鱼没有 KPI，但你完成得很好。",
-  "这片鱼鳞，曾经也有自己的梦想。",
-  "鱼已将紧急联系人修改为市场监管局。",
-];
 function toast(s) {
   if (bossMode) return;
   $("#toast").textContent = s;
@@ -204,9 +191,6 @@ function resetView() {
   drawnFish = "";
   completionShown = "";
   finishShown = "";
-  combo = 0;
-  lastTouch = 0;
-  $("#combo").textContent = "";
   $("#fish").disabled = true;
   stopReaction();
   $("#finish").close();
@@ -221,6 +205,10 @@ function render(s) {
         (s.count < state.count || (state.dish && !s.dish))))
   )
     return;
+  if (state?.round !== s.round) {
+    resetReactions();
+    drawnFish = "";
+  }
   if (state && s.round !== state.round) {
     $("#finish").close();
     $("#result").close();
@@ -300,130 +288,138 @@ $("#roundAction").onclick = () => {
   else $("#finish").showModal();
 };
 const reactions = {
-  squash: {
-    label: "鱼被你摸成了鱼饼。",
-    duration: 420,
-    frames: ["none", "scale(1.09,.78)", "scale(.96,1.06)", "none"],
+  fax: {
+    lines: ["尾巴卡在第二页了。", "多印一条，陪我游。", "这张有刺，拿边角。"],
+    ticker: "打印队列里还有半条鱼。",
+    duration: 1120,
+    frames: ["none", "translate(-12%, 9%) rotate(-7deg)", "translate(-21%, 16%) scale(.52,.13)", "translate(-19%, 16%) scale(.52,.13)", "translate(5%, -4%) scale(1.08,.85)", "none"],
   },
-  dodge: {
-    label: "鱼：你手往哪儿放呢！",
-    duration: 520,
-    frames: [
-      "none",
-      "translateX(-30px) rotate(-5deg)",
-      "translateX(20px) rotate(4deg)",
-      "none",
-    ],
+  orbit: {
+    lines: ["我养的月亮，刚满月。", "我停一下，看它还转不转。", "一圈了。你怎么还在这儿？"],
+    ticker: "鱼塘今天有两次月食。",
+    duration: 1200,
+    frames: ["none", "translate(-9%, -7%) rotate(-14deg) scale(.88)", "translate(1%, -14%) rotate(5deg) scale(.77)", "translate(9%, 2%) rotate(13deg)", "translate(-2%, 5%) scale(1.05)", "none"],
   },
-  wiggle: {
-    label: "鱼开启了震动模式。",
-    duration: 520,
-    frames: [
-      "none",
-      "rotate(-5deg)",
-      "rotate(5deg)",
-      "rotate(-4deg)",
-      "rotate(3deg)",
-      "none",
-    ],
+  scan: {
+    lines: ["别再嘀了，要算两条了。", "先沥水，我还能便宜点。", "小票给我，回塘要用。"],
+    ticker: "收银台响了。鱼坚持要开发票。",
+    duration: 1000,
+    frames: ["none", "translateX(-7%) rotate(-4deg)", "translateX(-7%) scale(.96,1.04)", "translateX(8%) scale(1.05,.95)", "translateX(6%) rotate(3deg)", "none"],
   },
-  flip: {
-    label: "咸鱼翻身。翻完继续躺。",
-    duration: 760,
-    frames: [
-      "none",
-      "scaleY(.12) translateY(-12px)",
-      "scaleY(-.85)",
-      "scaleY(-.85)",
-      "scaleY(.12)",
-      "none",
-    ],
+  toast: {
+    lines: ["我听见叮才起床。", "黄油放岸上，我自己抹。", "等等，另一片是我弟。"],
+    ticker: "本次烘烤程度：外酥内困。",
+    duration: 1080,
+    frames: ["none", "translateY(17%) scale(.8,.56)", "translateY(17%) scale(.8,.56)", "translateY(-20%) rotate(-13deg) scale(.95,1.08)", "translateY(2%) rotate(4deg)", "none"],
   },
-  puff: {
-    label: "不是胖，是被你气膨胀了。",
-    duration: 680,
-    frames: [
-      "none",
-      "scale(1.05,1.16)",
-      "scale(1.05,1.16)",
-      "scale(.98,.96)",
-      "none",
-    ],
+  stamp: {
+    lines: ["谁把我读完了？", "背面还有两行。", "墨没干，先别放我下水。"],
+    ticker: "此鱼一式一份，翻面仍然有效。",
+    duration: 1000,
+    frames: ["none", "rotate(-3deg)", "scale(1.13,.58) translateY(6%)", "scale(.96,1.08)", "rotate(2deg)", "none"],
   },
-  dead: {
-    label: "本鱼已下班。有事明天再摸。",
-    duration: 900,
-    frames: [
-      "none",
-      "translateY(13px) rotate(7deg) scaleY(.72)",
-      "translateY(13px) rotate(7deg) scaleY(.72)",
-      "none",
-    ],
+  signal: {
+    lines: ["等一下，尾巴还没连上。", "能听见吗？听见吐个泡。", "刚才谁摸了我的上一帧？"],
+    ticker: "鱼头已送达，鱼尾仍在路上。",
+    duration: 1050,
+    easing: "steps(1, end)",
+    frames: ["none", "translate(-7%, 2%) scaleX(.94)", "translate(5%, -3%) skewX(-7deg)", "translate(5%, -3%) skewX(-7deg)", "translate(-2%, 0) scaleX(1.03)", "none"],
   },
 };
-let reactionAnimation = null,
-  reactionTimer = null,
-  lastReaction = "",
-  combo = 0,
-  lastTouch = 0;
+const signatures = {
+  carp: { scene: "scan", line: "秤上那把草是我午饭，也算钱？" },
+  salmon: { scene: "fax", line: "用彩打。我这身橙色挺贵的。" },
+  puffer: { scene: "stamp", line: "你先盖。我一鼓气，字就大了。" },
+  flat: { scene: "toast", line: "这面晒好了。劳驾，翻面。" },
+  catfish: { scene: "signal", line: "我把胡子竖起来，你再说。" },
+};
+const flipFrames = ["none", "translateY(-5%) scaleY(.18)", "scaleY(-.88)", "scaleY(-.88)", "scaleY(.2)", "none"];
+let reactionAnimation = null;
+let reactionTimer = null;
+let sceneHoldUntil = 0;
+let remainingScenes = [];
+let previousScene = "";
+let lineIndex = {};
+let combo = 0;
+let lastTouch = 0;
+
+function nextScene(signature) {
+  if (!remainingScenes.length) remainingScenes = Object.keys(reactions);
+  const choices = remainingScenes.filter(scene => scene !== previousScene);
+  const scene = previousScene
+    ? choices[Math.floor(Math.random() * choices.length)]
+    : signature.scene;
+  remainingScenes.splice(remainingScenes.indexOf(scene), 1);
+  previousScene = scene;
+  return scene;
+}
+
 function stopReaction() {
   clearTimeout(reactionTimer);
   reactionAnimation?.cancel();
   reactionAnimation = null;
+  sceneHoldUntil = 0;
   $("#fishSvg").classList.remove("reacting");
   $("#fishSvg").removeAttribute("data-reaction");
+  $("#reactionProp")?.removeAttribute("data-scene");
 }
-function react(x, y) {
+
+function resetReactions() {
+  stopReaction();
+  remainingScenes = [];
+  previousScene = "";
+  lineIndex = {};
+  combo = 0;
+  lastTouch = 0;
+  $("#combo").textContent = "";
+}
+function react() {
   const now = performance.now();
   combo = now - lastTouch < 650 ? combo + 1 : 1;
   lastTouch = now;
-  $("#combo").textContent =
-    combo >= 3
-      ? `连摸 ${combo} 下 · ${combo >= 10 ? "鱼已申请工伤" : "手法逐渐专业"}`
-      : "";
-  const kind = fishFor(state).kind;
-  const pool = Object.keys(reactions);
-  if (kind === "puffer") pool.push("puff", "puff");
-  if (kind === "flat") pool.push("dead", "flip");
-  if (kind === "catfish") pool.push("wiggle");
-  let candidates = pool.filter((k) => k !== lastReaction);
-  const key =
-    combo > 0 && combo % 10 === 0
-      ? "flip"
-      : candidates[Math.floor(Math.random() * candidates.length)];
-  lastReaction = key;
+  $("#combo").textContent = combo >= 3
+    ? "连摸 " + combo + " 下 · " + (combo >= 10 ? "鱼已申请工伤" : "手法逐渐专业")
+    : "";
+
+  // A fast second tap still counts. Let the current gag land before replacing it.
+  const flip = combo % 10 === 0;
+  if (!flip && combo > 1 && now < sceneHoldUntil) return;
+  const signature = signatures[fishFor(state).kind];
+  const first = !previousScene;
+  const key = flip ? "stamp" : nextScene(signature);
   const reaction = reactions[key];
-  stopReaction();
-  const fish = $("#fishSvg");
-  fish.dataset.reaction = key;
-  fish.classList.add("reacting");
-  $("#speech").textContent = reaction.label;
-  $("#ticker").textContent =
-    Math.random() < 0.4
-      ? fishFor(state).line
-      : lines[Math.floor(Math.random() * lines.length)];
-  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    reactionAnimation = fish.animate(
-      reaction.frames.map((transform) => ({ transform })),
-      { duration: reaction.duration, easing: "ease-in-out" },
-    );
-    reactionAnimation.onfinish = () => {
-      fish.classList.remove("reacting");
-      reactionAnimation = null;
-    };
+  let line;
+  if (flip) {
+    line = "翻过来，背面的工伤也盖一下。";
+  } else if (first) {
+    line = signature.line;
   } else {
-    reactionTimer = setTimeout(() => fish.classList.remove("reacting"), 150);
+    const index = lineIndex[key] ?? 0;
+    line = reaction.lines[index];
+    lineIndex[key] = (index + 1) % reaction.lines.length;
   }
-  for (let i = 0; i < 4; i++) {
-    const particle = document.createElement("i");
-    particle.className = "floating scale-particle";
-    particle.style.left = x + Math.random() * 30 - 15 + "px";
-    particle.style.top = y + "px";
-    particle.style.setProperty("--dx", Math.random() * 110 - 55 + "px");
-    particle.style.background = fishFor(state).color;
-    document.body.append(particle);
-    setTimeout(() => particle.remove(), 800);
+
+  const prop = $("#reactionProp");
+  const replayProp = prop?.dataset.scene === key;
+  stopReaction();
+  sceneHoldUntil = now + reaction.duration;
+  const fish = $("#fishSvg");
+  fish.dataset.reaction = flip ? "flip" : key;
+  if (prop) {
+    // Allow a second stamp to start fresh when the tenth tap lands mid-stamp.
+    if (replayProp) void prop.offsetWidth;
+    prop.dataset.scene = key;
   }
+  $("#speech").textContent = line;
+  $("#ticker").textContent = flip ? "正面已阅，背面也已阅。" : reaction.ticker;
+  if (typeof fish.animate === "function" && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    fish.classList.add("reacting");
+    reactionAnimation = fish.animate(
+      (flip ? flipFrames : reaction.frames).map(transform => ({ transform })),
+      { duration: reaction.duration, easing: reaction.easing || "ease-in-out" },
+    );
+  }
+  reactionTimer = setTimeout(stopReaction, reaction.duration);
   if (sound) {
     try {
       audio ||= new (window.AudioContext || window.webkitAudioContext)();
@@ -510,7 +506,7 @@ function pat(e) {
   const r = $("#fish").getBoundingClientRect(),
     x = e?.clientX || r.x + r.width * 0.6,
     y = e?.clientY || r.y + r.height * 0.5;
-  react(x, y);
+  react();
   pending.push({
     round: state.round,
     event: eventId(),
