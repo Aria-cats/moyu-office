@@ -58,6 +58,7 @@ function toast(s) {
 function setConnection(online) {
   connected = online;
   $("#connectionNotice").hidden = online;
+  $("#originalPond").hidden = online || location.hostname !== "aria-cats.github.io";
   $("#fish").disabled =
     !online || !state || !!state.dish || state.count >= state.target;
   document
