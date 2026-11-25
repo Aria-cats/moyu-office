@@ -564,6 +564,19 @@ h2 small {
   letter-spacing: 0;
   margin-left: 10px;
 }
+.menu-head, .menu-actions {
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.menu-actions {
+  display: flex;
+  align-items: center;
+}
+.menu-actions a {
+  color: #775038;
+  font-size: 13px;
+  text-underline-offset: 3px;
+}
 .section-head button {
   background: none;
   border: 0;

@@ -572,22 +572,44 @@ const rewards = {
   "剁椒": {badge: "鱼塘辣椒王", props: "🌶　✦　🌶", copy: "辣椒准备就位！这口热烈，献给认真摸鱼的你。"},
   "放生": {badge: "自由守护者", props: "○　〰　○", copy: "你们摸出了它的自由，也给自己放了一个小假。"}
 };
+const resultKitchen = window.createKitchenPlayer?.($("#kitchenCanvas"), $("#kitchenCaption"));
+const servedDishes = { "红烧": "红烧鱼", "清蒸": "葱油清蒸鱼", "剁椒": "剁椒鱼" };
 function replayReward() {
   const stage = $("#rewardStage");
+  const dish = stage.dataset.dish;
+  const cooking = Boolean(resultKitchen && servedDishes[dish]);
+  stage.classList.toggle("kitchen-playing", cooking);
+  const canvas = $("#kitchenCanvas");
+  const caption = $("#kitchenCaption");
+  if (canvas) canvas.hidden = !cooking;
+  if (caption) caption.hidden = !cooking;
+  if (cooking) {
+    stage.classList.remove("playing");
+    resultKitchen.play(dish);
+    return;
+  }
+  resultKitchen?.stop();
   stage.classList.remove("playing"); void stage.offsetWidth; stage.classList.add("playing");
   burst(["✦", "✧", "♡", "○"], 28, $("#result"), $("#result").clientWidth / 2, 210);
 }
 $("#replayReward").onclick = replayReward;
+$("#result").addEventListener("close", () => {
+  if (!$("#result").open) resultKitchen?.finish();
+});
 function showResult(s) {
   if (bossMode) return;
   const reward = rewards[s.dish];
   $("#rewardStage").dataset.dish = s.dish;
+  const cooking = Boolean(servedDishes[s.dish]);
+  const eyebrow = $("#resultEyebrow");
+  if (eyebrow) eyebrow.textContent = cooking ? "下班小灶" : "鱼生纪念";
+  $("#replayReward").textContent = cooking ? "↻ 再看一遍开火" : "↻ 再看一次放生";
   $("#rewardBadge").textContent = (s.mine > 0 ? "✦ 本轮纪念 · " : "✧ 本轮见证 · ") + reward.badge;
   $("#rewardProps").textContent = reward.props;
   $("#resultEmoji").innerHTML =
     `<svg viewBox="0 0 64 64" style="width:100px;height:100px" aria-hidden="true">${dishArt[s.dish]}</svg>`;
   $("#resultTitle").textContent =
-    fishFor(s).name + (s.dish === "放生" ? "，重获自由。" : "，光荣出锅。");
+    cooking ? "今晚吃" + servedDishes[s.dish] + "。" : fishFor(s).name + "，重获自由。";
   $("#resultCopy").textContent = s.autoReleased
     ? "最后一摸的人下班了。超过了选择时间，鱼塘决定替它放个生。"
     : s.dish === "放生"
@@ -678,6 +700,7 @@ function setBossMode(active) {
       round: state?.round,
     };
     // Native dialogs live above every z-index. Close them before showing cover.
+    if ($("#result").open) resultKitchen?.finish();
     bossSnapshot.dialogs.forEach((dialog) => dialog.close());
     stopReaction();
     audio?.suspend().catch(() => {});

@@ -1,0 +1,34 @@
+#rewardStage.kitchen-playing {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+  min-height: 0;
+  background: #f6ebd9;
+  border: 1px solid #e2d4bc;
+  border-radius: 18px;
+}
+.kitchen-canvas, .kitchen-caption {
+  display: none;
+}
+#rewardStage.kitchen-playing :is(.reward-rays, .reward-sparkles, .plate, .reward-props) {
+  display: none;
+}
+.kitchen-playing .kitchen-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 680 / 355;
+}
+.kitchen-playing .kitchen-caption {
+  display: block;
+  margin: 0;
+  padding: .65em .9em;
+  border-top: 1px solid #e1d7c2;
+  background: #fff8eb;
+  color: #68543c;
+  font: 600 clamp(.78rem, 2.6vw, .91rem)/1.5 "PingFang SC", sans-serif;
+  letter-spacing: .04em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
