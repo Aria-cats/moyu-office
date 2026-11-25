@@ -269,7 +269,26 @@ h1 em {
   cursor: grab;
   position: relative;
   z-index: 3;
-  outline-offset: -20px;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: none;
+}
+.fish-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+/* Put the keyboard indicator on the existing shortcut beside the fish. */
+@supports selector(:has(:focus-visible)) {
+  .fish-btn:focus-visible {
+    outline: none;
+  }
+  .aquarium:has(.fish-btn:focus-visible) .hint span {
+    outline: 2px solid #596c50;
+    outline-offset: 2px;
+    color: var(--ink);
+  }
 }
 .fish-btn:active {
   cursor: grabbing;
@@ -278,7 +297,9 @@ h1 em {
   filter: none;
   transform: none;
 }
+/* Route every part of the illustration to the native fish button. */
 .fish-svg {
+  pointer-events: none;
   width: 100%;
   height: 100%;
   overflow: visible;
