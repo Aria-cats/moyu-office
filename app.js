@@ -533,12 +533,36 @@ async function refresh() {
   }
 }
 $("#reconnect").onclick = refresh;
+const resultKitchen = window.createKitchenPlayer?.($("#kitchenCanvas"), $("#kitchenCaption"));
+const dishNames = { "红烧": "红烧鱼", "清蒸": "葱油清蒸鱼", "剁椒": "剁椒鱼" };
+
+function replayKitchen() {
+  const stage = $("#rewardStage");
+  if (stage?.classList.contains("kitchen-playing")) {
+    resultKitchen.play(stage.dataset.dish);
+  }
+}
+$("#replayReward")?.addEventListener("click", replayKitchen);
+$("#result").addEventListener("close", () => {
+  if (!$("#result").open) resultKitchen?.finish();
+});
 function showResult(s) {
   if (bossMode) return;
+  const stage = $("#rewardStage");
+  const cooking = Boolean(resultKitchen && dishNames[s.dish] && stage);
+  if (stage) {
+    stage.dataset.dish = s.dish;
+    stage.classList.toggle("kitchen-playing", cooking);
+    $("#kitchenCanvas").hidden = !cooking;
+    $("#kitchenCaption").hidden = !cooking;
+    $("#replayReward").hidden = !cooking;
+    $("#resultEyebrow").textContent = cooking ? "下班小灶" : "鱼生纪念";
+  }
+  if (!cooking) resultKitchen?.stop();
   $("#resultEmoji").innerHTML =
     `<svg viewBox="0 0 64 64" style="width:100px;height:100px" aria-hidden="true">${dishArt[s.dish]}</svg>`;
   $("#resultTitle").textContent =
-    fishFor(s).name + (s.dish === "放生" ? "，重获自由。" : "，光荣出锅。");
+    dishNames[s.dish] ? "今晚吃" + dishNames[s.dish] + "。" : fishFor(s).name + "，重获自由。";
   $("#resultCopy").textContent = s.autoReleased
     ? "最后一摸的人下班了。超过了选择时间，鱼塘决定替它放个生。"
     : s.dish === "放生"
@@ -553,6 +577,7 @@ function showResult(s) {
   winner.textContent = `最后一摸：${s.winnerName || "匿名打工人"}`;
   $("#certificate").append(title, detail, winner);
   $("#result").showModal();
+  replayKitchen();
 }
 document.querySelectorAll("[data-cook]").forEach((button) => {
   button.onclick = async () => {
@@ -624,6 +649,7 @@ function setBossMode(active) {
       round: state?.round,
     };
     // Native dialogs live above every z-index. Close them before showing cover.
+    if ($("#result").open) resultKitchen?.finish();
     bossSnapshot.dialogs.forEach((dialog) => dialog.close());
     stopReaction();
     audio?.suspend().catch(() => {});

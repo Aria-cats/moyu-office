@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8f5ec" />
+    <meta name="description" content="摸鱼办事处的小厨房开火了。点一道鱼，看它怎么出锅。" />
+    <title>摸鱼小厨房 · 摸鱼办事处</title>
+    <link rel="stylesheet" href="./kitchen.css?v=db7256bcc5" />
+    <link rel="stylesheet" href="./kitchen-menu.css?v=44b5477559" />
+    <script src="./kitchen-scene.js?v=f63c986508" defer></script>
+    <script src="./kitchen-player.js?v=9988c37cc2" defer></script>
+    <script src="./kitchen-menu.js?v=7888534a50" defer></script>
+  </head>
+  <body>
+    <main class="menu">
+      <a class="back" href="./"><span aria-hidden="true">←</span> 回鱼塘</a>
+      <header class="menu-heading">
+        <h1>摸鱼小厨房</h1>
+        <button class="replay" id="replay" type="button"><span aria-hidden="true">↻</span> 再看一次</button>
+      </header>
+      <nav class="dishes" aria-label="选择一道菜">
+        <a href="#红烧" data-dish="红烧" aria-current="true">红烧鱼</a>
+        <a href="#清蒸" data-dish="清蒸">葱油清蒸鱼</a>
+        <a href="#剁椒" data-dish="剁椒">剁椒鱼</a>
+      </nav>
+      <div id="rewardStage" class="reward-stage kitchen-playing">
+        <canvas class="kitchen-canvas" width="680" height="355" aria-label="红烧鱼制作动画" role="img"></canvas>
+        <p class="kitchen-caption" aria-live="polite" aria-atomic="true"></p>
+      </div>
+      <noscript><p>请开启 JavaScript 观看出锅动画。</p></noscript>
+    </main>
+  </body>
+</html>

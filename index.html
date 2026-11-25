@@ -8,7 +8,8 @@
       content="五条有班味的鱼、六种摸鱼姿势。一起摸到最后一下，决定这条鱼的命运。"
     />
     <title>摸鱼办事处 · 今天也要有所鱼获</title>
-    <link rel="stylesheet" href="./style.css?v=9b6f0c447a" />
+    <link rel="stylesheet" href="./style.css?v=a7c0102fe6" />
+    <link rel="stylesheet" href="./kitchen.css?v=db7256bcc5" />
   </head>
   <body>
     <header>
@@ -316,9 +317,12 @@
           ><button id="invite">↗ 喊同事来摸</button>
         </div>
       </div>
-      <div class="section-head">
+      <div class="section-head menu-head">
         <h2>它的下场，你先惦记着。<small>The fish is the dish.</small></h2>
-        <button id="recipeHelp">最后一下，才说了算 ↗</button>
+        <div class="menu-actions">
+          <a href="./kitchen.html">去后厨看一锅 ↗</a>
+          <button id="recipeHelp">最后一下，才说了算 ↗</button>
+        </div>
       </div>
       <div class="recipe-grid">
         <button class="recipe" data-recipe="红烧">
@@ -388,11 +392,16 @@
     <dialog id="result">
       <button class="close" data-close>×</button>
       <div class="result">
-        <div class="eyebrow">A FISH TO REMEMBER</div>
-        <div class="plate" id="resultEmoji">🍲</div>
+        <div class="eyebrow" id="resultEyebrow">鱼生纪念</div>
+        <div class="reward-stage" id="rewardStage">
+          <div class="plate" id="resultEmoji">🍲</div>
+          <canvas class="kitchen-canvas" id="kitchenCanvas" width="680" height="355" aria-hidden="true" hidden></canvas>
+          <p class="kitchen-caption" id="kitchenCaption" aria-live="polite" aria-atomic="true" hidden></p>
+        </div>
         <h2 id="resultTitle">鱼大福，光荣出锅。</h2>
         <p id="resultCopy"></p>
         <div class="certificate" id="certificate"></div>
+        <button class="reward-replay" id="replayReward" type="button" hidden>↻ 再看一遍开火</button>
         <button class="primary" id="next">和大家继续摸下一条</button>
       </div>
     </dialog>
@@ -468,6 +477,8 @@
     <div class="toast" id="toast" role="status"></div>
     <script src="./config.js" defer></script>
     <script src="./api.js" defer></script>
-    <script src="./app.js" defer></script>
+    <script src="./kitchen-scene.js?v=f63c986508" defer></script>
+    <script src="./kitchen-player.js?v=9988c37cc2" defer></script>
+    <script src="./app.js?v=a45b991c29" defer></script>
   </body>
 </html>

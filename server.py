@@ -23,7 +23,13 @@ ALLOWED_ORIGINS = frozenset(filter(None, (origin.strip() for origin in os.enviro
 DISHES = ('红烧', '清蒸', '剁椒', '放生')
 STATIC = {'/': ('index.html', 'text/html'), '/index.html': ('index.html', 'text/html'),
           '/app.js': ('app.js', 'text/javascript'), '/style.css': ('style.css', 'text/css'),
-          '/config.js': ('config.js', 'text/javascript'), '/api.js': ('api.js', 'text/javascript')}
+          '/config.js': ('config.js', 'text/javascript'), '/api.js': ('api.js', 'text/javascript'),
+          '/kitchen.html': ('kitchen.html', 'text/html'),
+          '/kitchen.css': ('kitchen.css', 'text/css'),
+          '/kitchen-menu.css': ('kitchen-menu.css', 'text/css'),
+          '/kitchen-menu.js': ('kitchen-menu.js', 'text/javascript'),
+          '/kitchen-scene.js': ('kitchen-scene.js', 'text/javascript'),
+          '/kitchen-player.js': ('kitchen-player.js', 'text/javascript')}
 
 
 def connect():

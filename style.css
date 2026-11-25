@@ -564,6 +564,19 @@ h2 small {
   letter-spacing: 0;
   margin-left: 10px;
 }
+.menu-head, .menu-actions {
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.menu-actions {
+  display: flex;
+  align-items: center;
+}
+.menu-actions a {
+  color: #775038;
+  font-size: 13px;
+  text-underline-offset: 3px;
+}
 .section-head button {
   background: none;
   border: 0;
@@ -725,6 +738,18 @@ dialog p {
 .result .plate {
   font-size: 75px;
   margin: 10px;
+}
+#rewardStage.kitchen-playing {
+  margin: .75rem 0 1rem;
+  overflow: hidden;
+}
+.reward-replay {
+  display: block;
+  margin: 0 auto .5rem;
+  padding: .6rem 1rem;
+  background: transparent;
+  color: var(--green);
+  border: 0;
 }
 .certificate {
   border: 1px dashed #c9ccb8;
