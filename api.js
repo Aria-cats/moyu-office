@@ -5,8 +5,9 @@
 
   function validateProfile(data) {
     if (!data || typeof data.profile?.name !== "string" ||
-        typeof data.profile.region !== "string") {
-      throw new Error("鱼塘名片暂时没能同步。");
+        typeof data.profile.region !== "string" ||
+        (data.profile.regionOptedOut !== undefined && typeof data.profile.regionOptedOut !== "boolean")) {
+      throw new Error("鱼片暂时没能同步。");
     }
     return data;
   }

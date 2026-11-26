@@ -9,6 +9,7 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
   const boardNames = {players: "个人累计前五名", regions: "地区代表队前五名"};
 
   let profile = { name: initialName, region: "" };
+  let profileLoaded = false;
   let legacyName = storage.get("moyuName");
   if (legacyName === "匿名打工人") legacyName = "";
   let activeBoard = "players";
@@ -26,15 +27,22 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
 
   for (const region of regions) regionInput.add(new Option(region, region));
 
+  function showSavedRegion() {
+    regionInput.value = profile.region || (profile.regionOptedOut ? "" : "unassigned");
+    el("regionState").textContent = profileLoaded ? "未匹配到地区" :
+      lastLoadFailed ? "代表队暂时未同步" : "正在读取代表队…";
+  }
+
   function applyProfile(next) {
     profile = next;
+    profileLoaded = true;
     onName(profile.name || "匿名打工人");
     const regionLabel = el("myRegion");
     regionLabel.textContent = profile.region ? profile.region + "队" : "";
     regionLabel.hidden = !profile.region;
     if (modal.open) {
       if (!nameEdited) nameInput.value = profile.name;
-      if (!regionEdited) regionInput.value = profile.region;
+      if (!regionEdited) showSavedRegion();
     }
   }
 
@@ -58,7 +66,7 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
     } else if (!snapshot) {
       status.textContent = "正在加载榜单…";
     } else if (!rows.length) {
-      status.textContent = activeBoard === "players" ? "还没人上榜，摸一下就有机会。" : "还没有地区上榜。选个代表队，一起摸鱼。";
+      status.textContent = activeBoard === "players" ? "还没人上榜，摸一下就有机会。" : "还没有地区上榜。来给你的队摸下第一分！";
     }
     status.hidden = !lastLoadFailed && !!rows.length;
     el("rankRetry").hidden = !lastLoadFailed;
@@ -87,6 +95,7 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
       if (version !== profileVersion) return;
       lastLoadFailed = true;
       el("onlineCount").textContent = "—";
+      if (modal.open && !regionEdited) showSavedRegion();
     } finally {
       reading = false;
       renderBoard();
@@ -110,7 +119,7 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
     nameEdited = false;
     regionEdited = false;
     nameInput.value = profile.name;
-    regionInput.value = profile.region;
+    showSavedRegion();
     message("");
     nameInput.disabled = saving;
     regionInput.disabled = saving;
@@ -160,6 +169,13 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
   el("profileForm").onsubmit = async event => {
     event.preventDefault();
     if (saving) return;
+    const changes = {};
+    if (nameEdited) changes.name = nameInput.value.trim();
+    if (regionEdited) changes.region = regionInput.value;
+    if (!Object.keys(changes).length) {
+      message("鱼片没有改动。");
+      return;
+    }
     ++profileVersion;
     ++draftVersion;
     saving = true;
@@ -172,15 +188,15 @@ window.startPondSocial = function ({ pond, storage, firstRound, initialName, onN
     message("正在保存…");
     try {
       await firstRound;
-      const response = await pond.profile({ name: nameInput.value.trim(), region: regionInput.value });
+      const response = await pond.profile(changes);
       legacyName = "";
       applyProfile(response.profile);
       storage.set("moyuName", profile.name);
       message("");
       if (editorVersion === draftVersion) modal.close();
-      notify("摸鱼名片已保存。");
+      notify("鱼片已保存。");
     } catch {
-      message("名片暂时没保存成功，请重试。");
+      message("鱼片暂时没保存成功，请重试。");
     } finally {
       saving = false;
       button.disabled = false;

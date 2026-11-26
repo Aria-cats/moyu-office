@@ -100,7 +100,7 @@
         </div>
         <div class="pond-signin">
           <div class="online"><i class="dot" aria-hidden="true"></i>现在在线 <strong id="onlineCount">—</strong> 人</div>
-          <button id="editProfile" class="profile-link" type="button" aria-haspopup="dialog">改名 / 选地区</button>
+          <button id="editProfile" class="profile-link" type="button" aria-haspopup="dialog">我的鱼片</button>
         </div>
       </section>
       <div class="connection-notice" id="connectionNotice" role="status">
@@ -294,7 +294,7 @@
               <div class="identity">
                 <div class="avatar">✋</div>
                 <div>
-                  <button id="nickname" aria-label="修改摸鱼昵称" aria-haspopup="dialog">
+                  <button id="nickname" aria-label="编辑我的鱼片" aria-haspopup="dialog">
                     匿名打工人
                   </button>
                   <div class="my-label" id="myRegion" hidden></div>
@@ -429,18 +429,21 @@
     </dialog>
     <dialog id="nameModal" aria-labelledby="profileTitle">
       <button class="close" data-close>×</button>
-      <h2 id="profileTitle">我的摸鱼名片</h2>
+      <h2 id="profileTitle">我的鱼片</h2>
       <form id="profileForm">
         <label for="nameInput">鱼塘昵称</label>
         <input class="name-input" id="nameInput" maxlength="16" placeholder="例如：正在开会的王总" />
         <div class="region-label">
           <label for="regionInput">地区代表队</label>
-          <button type="button" id="regionHint" class="profile-link">按 IP 推荐</button>
+          <button type="button" id="regionHint" class="profile-link">按当前 IP 重选</button>
         </div>
-        <select id="regionInput" class="name-input"><option value="">不参加地区排行</option></select>
-        <p id="regionNote">保存后，新摸的次数会计入该队。<a href="https://db-ip.com/" target="_blank" rel="noopener noreferrer">IP 地区数据 · DB-IP</a></p>
+        <select id="regionInput" class="name-input" aria-describedby="regionNote">
+          <option value="unassigned" id="regionState" selected disabled>正在读取代表队…</option>
+          <option value="">不参加地区排行</option>
+        </select>
+        <p id="regionNote">首次进塘会按 IP 匹配代表队。你可以换队或退出，保存后从下一摸生效。<a href="https://db-ip.com/" target="_blank" rel="noopener noreferrer">IP 地区数据 · DB-IP</a></p>
         <p id="profileStatus" role="status" hidden></p>
-        <button type="submit" class="primary" id="saveName">保存名片</button>
+        <button type="submit" class="primary" id="saveName">保存鱼片</button>
       </form>
     </dialog>
     <section
@@ -498,8 +501,8 @@
     <script src="./config.js" defer></script>
     <script src="./cloudbase.full.js" defer></script>
     <script src="./cloud-transport.js" defer></script>
-    <script src="./api.js?v=8174ba6657" defer></script>
-    <script src="./social.js?v=ae2e701270" defer></script>
+    <script src="./api.js?v=0792a9966c" defer></script>
+    <script src="./social.js?v=4dc473aeb5" defer></script>
     <script src="./kitchen-scene.js?v=f63c986508" defer></script>
     <script src="./kitchen-player.js?v=9988c37cc2" defer></script>
     <script src="./app.js?v=f03e080fac" defer></script>
