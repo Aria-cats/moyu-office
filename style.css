@@ -1553,3 +1553,111 @@ dialog .play-spark {position:absolute;}
     animation: none !important;
   }
 }
+
+.pond-signin {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.pond-signin .online {
+  display: inline-flex;
+  gap: .42rem;
+  padding: .45rem .8rem;
+  color: #425d45;
+  background: #e9efdf;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+#onlineCount { font-size: 1.06rem; font-variant-numeric: tabular-nums; }
+.pond-signin .dot { margin-right: .2rem; }
+.profile-link {
+  padding: .41rem .67rem;
+  border: 1px solid #c1cbb7;
+  border-radius: .5rem;
+  background: #fffcf2;
+  color: #4d654d;
+  font-size: .78rem;
+}
+.round-people {
+  color: #697560;
+  margin: .7rem 0 0;
+  font-size: .77rem;
+  line-height: 1.4;
+}
+.rankings { min-width: 0; }
+.rankings h2 {
+  margin: 0 0 .7rem;
+  font: 600 1.13rem/1.35 "Noto Serif SC", serif;
+}
+.rank-choices {
+  display: flex;
+  gap: .25rem;
+  flex-wrap: wrap;
+  padding-bottom: .4rem;
+}
+.rank-choices button {
+  color: #65735b;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: .45rem;
+  font-size: .76rem;
+  padding: .35rem .6rem;
+}
+.rank-choices button[aria-pressed="true"] {
+  color: #3f5a41;
+  background: #e8eddf;
+  border-color: #d4ddc8;
+  font-weight: 600;
+}
+#rankRows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: fish-rank;
+}
+#rankRows li {
+  display: grid;
+  grid-template-columns: 1.2em minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: .45rem;
+  padding: .45rem 0;
+  border-bottom: 1px dashed var(--line);
+  counter-increment: fish-rank;
+  font-size: .81rem;
+}
+#rankRows li:last-child { border-bottom: 0; }
+#rankRows li::before { content: counter(fish-rank); color: #8b917e; }
+#rankRows li:first-child::before { color: #b36e3f; font-weight: 700; }
+#rankRows li span, #nickname { overflow-wrap: anywhere; }
+#rankRows li strong { font-size: .78rem; font-variant-numeric: tabular-nums; }
+#rankStatus, #regionNote, #profileStatus {
+  font-size: .79rem;
+  line-height: 1.6;
+  color: #68745f;
+  margin: .5rem 0;
+}
+#profileStatus { color: #8a5838; }
+#regionNote { margin-top: 0; }
+.region-label { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+#profileForm { text-align: left; }
+#profileForm label { font-weight: 600; font-size: .85rem; }
+#profileForm .name-input { display: block; margin: .45rem 0 .9rem; color: var(--ink); font: inherit; }
+#profileForm .primary { margin-top: .7rem; }
+.identity, .identity > div { min-width: 0; }
+.my .avatar { flex: 0 0 37px; }
+@media (max-width: 900px) {
+  .intro { flex-wrap: wrap; gap: .75rem; }
+  .pond-signin { justify-content: flex-start; }
+  .rankings { grid-column: 1 / -1; }
+}
+@media (max-width: 500px) {
+  .pond-signin { width: 100%; }
+  .side { gap: .65rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .side .card { min-width: 0; padding: .85rem; }
+  .my { flex-wrap: wrap; gap: .25rem .65rem; }
+  .my .avatar { display: none; }
+  .personal-stats { column-gap: .35rem; }
+  .rank-choices button, .profile-link { min-height: 2.25rem; }
+}

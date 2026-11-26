@@ -3,6 +3,26 @@
   "use strict";
   const dishes = ["红烧", "清蒸", "剁椒", "放生"];
 
+  function validateProfile(data) {
+    if (!data || typeof data.profile?.name !== "string" ||
+        typeof data.profile.region !== "string") {
+      throw new Error("鱼塘名片暂时没能同步。");
+    }
+    return data;
+  }
+
+  function validateSocial(data) {
+    validateProfile(data);
+    const validRows = (rows) => Array.isArray(rows) && rows.every(row =>
+      typeof row?.name === "string" && row.name.trim() &&
+      Number.isSafeInteger(row.count) && row.count >= 0);
+    if (!Number.isSafeInteger(data.online) || data.online < 0 ||
+        !validRows(data.players) || !validRows(data.regions)) {
+      throw new Error("鱼塘榜单暂时没能同步。");
+    }
+    return data;
+  }
+
   function validateState(state) {
     const integer = (n) => Number.isSafeInteger(n) && n >= 0;
     if (
@@ -57,7 +77,7 @@
     );
     const pollIntervalMs = Math.max(500, Number(config.pollIntervalMs) || 1300);
 
-    async function request(path, data) {
+    async function request(path, data, validate = validateState) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
       try {
@@ -89,7 +109,7 @@
           error.status = response.status;
           throw error;
         }
-        return validateState(await response.json());
+        return validate(await response.json());
       } finally {
         clearTimeout(timeout);
       }
@@ -102,6 +122,12 @@
         request("touch", { round, event, name }),
       cook: ({ round, dish, name }) => request("cook", { round, dish, name }),
       next: ({ round, name }) => request("next", { round, name }),
+      social: (legacyName) => request("social", legacyName ? { legacyName } : {}, validateSocial),
+      profile: ({ name, region }) => request("profile", { name, region }, validateProfile),
+      regionHint: () => request("regionHint", {}, data => {
+        if (typeof data?.region !== "string") throw new Error("暂时无法推荐地区。");
+        return data;
+      }),
     });
   };
 })(window);

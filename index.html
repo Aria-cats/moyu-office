@@ -8,7 +8,7 @@
       content="五条有班味的鱼、六种摸鱼姿势。一起摸到最后一下，决定这条鱼的命运。"
     />
     <title>摸鱼办事处 · 今天也要有所鱼获</title>
-    <link rel="stylesheet" href="./style.css?v=be2ee2d4a5" />
+    <link rel="stylesheet" href="./style.css?v=8e1d32e17d" />
     <link rel="stylesheet" href="./kitchen.css?v=db7256bcc5" />
   </head>
   <body>
@@ -98,8 +98,9 @@
             大家一起摸够 50 下，最后一下的人决定红烧、清蒸，还是放生。
           </div>
         </div>
-        <div class="online">
-          <i class="dot"></i><span id="connection">正在连接鱼塘</span>
+        <div class="pond-signin">
+          <div class="online"><i class="dot" aria-hidden="true"></i>现在在线 <strong id="onlineCount">—</strong> 人</div>
+          <button id="editProfile" class="profile-link" type="button" aria-haspopup="dialog">改名 / 选地区</button>
         </div>
       </section>
       <div class="connection-notice" id="connectionNotice" role="status">
@@ -280,6 +281,7 @@
               <span id="percent">0% 已摸</span
               ><span id="remaining">待摸 50 次</span>
             </div>
+            <p id="connection" class="round-people">正在连接鱼塘</p>
             <div class="rule" id="playRule">
               抢到最后一下<br /><b>这条鱼怎么做，你说了算。</b>
             </div>
@@ -292,9 +294,10 @@
               <div class="identity">
                 <div class="avatar">✋</div>
                 <div>
-                  <button id="nickname" aria-label="修改摸鱼昵称">
+                  <button id="nickname" aria-label="修改摸鱼昵称" aria-haspopup="dialog">
                     匿名打工人
                   </button>
+                  <div class="my-label" id="myRegion" hidden></div>
                   <div class="my-label">本轮，我摸了</div>
                 </div>
               </div>
@@ -306,9 +309,15 @@
               </div>
               <small class="stats-note">北京时间 · 每周一开始统计；旧记录计入累计</small>
             </section>
-          <section class="card motto">
-            <div class="quote">“</div>
-            <p id="quote">你的同事还在假装忙碌，<br />你已经取得了实际进展。</p>
+          <section class="card rankings" aria-labelledby="rankTitle">
+            <h2 id="rankTitle">摸鱼排行榜</h2>
+            <div class="rank-choices" aria-label="榜单类型" role="group">
+              <button type="button" data-board="players" aria-pressed="true" aria-controls="rankRows">个人累计</button>
+              <button type="button" data-board="regions" aria-pressed="false" aria-controls="rankRows">地区代表队</button>
+            </div>
+            <ol id="rankRows" aria-label="个人累计前五名"></ol>
+            <p id="rankStatus" role="status">正在加载榜单…</p>
+            <button type="button" class="profile-link" id="rankRetry" hidden>重新加载</button>
           </section>
         </aside>
       </div>
@@ -418,16 +427,21 @@
       <p>每一条鱼，都有打工人共同努力的痕迹。</p>
       <div id="archiveList"></div>
     </dialog>
-    <dialog id="nameModal">
+    <dialog id="nameModal" aria-labelledby="profileTitle">
       <button class="close" data-close>×</button>
-      <h2>鱼塘怎么称呼你？</h2>
-      <p>留个摸鱼化名，出锅的时候好记你一功。</p>
-      <input
-        class="name-input"
-        id="nameInput"
-        maxlength="16"
-        placeholder="例如：正在开会的王总"
-      /><button class="primary" id="saveName">就叫这个</button>
+      <h2 id="profileTitle">我的摸鱼名片</h2>
+      <form id="profileForm">
+        <label for="nameInput">鱼塘昵称</label>
+        <input class="name-input" id="nameInput" maxlength="16" placeholder="例如：正在开会的王总" />
+        <div class="region-label">
+          <label for="regionInput">地区代表队</label>
+          <button type="button" id="regionHint" class="profile-link">按 IP 推荐</button>
+        </div>
+        <select id="regionInput" class="name-input"><option value="">不参加地区排行</option></select>
+        <p id="regionNote">保存后，新摸的次数会计入该队。<a href="https://db-ip.com/" target="_blank" rel="noopener noreferrer">IP 地区数据 · DB-IP</a></p>
+        <p id="profileStatus" role="status" hidden></p>
+        <button type="submit" class="primary" id="saveName">保存名片</button>
+      </form>
     </dialog>
     <section
       class="work-page"
@@ -484,9 +498,10 @@
     <script src="./config.js" defer></script>
     <script src="./cloudbase.full.js" defer></script>
     <script src="./cloud-transport.js" defer></script>
-    <script src="./api.js" defer></script>
+    <script src="./api.js?v=8174ba6657" defer></script>
+    <script src="./social.js?v=ae2e701270" defer></script>
     <script src="./kitchen-scene.js?v=f63c986508" defer></script>
     <script src="./kitchen-player.js?v=9988c37cc2" defer></script>
-    <script src="./app.js?v=f6eda14951" defer></script>
+    <script src="./app.js?v=f03e080fac" defer></script>
   </body>
 </html>

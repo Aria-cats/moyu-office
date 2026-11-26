@@ -34,7 +34,6 @@ let nickname = storage.get("moyuName") || "匿名打工人",
   bossMode = false,
   bossSnapshot = null;
 $("#nickname").textContent = nickname;
-$("#nickname").style.cursor = "pointer";
 function toast(s) {
   if (bossMode) return;
   $("#toast").textContent = s;
@@ -826,17 +825,6 @@ $("#archive").onclick = () => {
   $("#archiveModal").showModal();
 };
 $("#home").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
-$("#nickname").onclick = () => {
-  $("#nameInput").value = nickname;
-  $("#nameModal").showModal();
-};
-$("#saveName").onclick = () => {
-  nickname = $("#nameInput").value.trim() || "匿名打工人";
-  storage.set("moyuName", nickname);
-  $("#nickname").textContent = nickname;
-  $("#nameModal").close();
-  toast("化名已就位，开始带薪摸鱼。");
-};
 
 const dishArt = {
   红烧: '<ellipse cx="32" cy="40" rx="27" ry="11" fill="#ded7c5"/><path d="M5 29Q8 52 32 52Q57 52 59 29Z" fill="#c97950" stroke="#594c37" stroke-width="1.7"/><ellipse cx="32" cy="29" rx="27" ry="9" fill="#a64f35" stroke="#594c37" stroke-width="1.7"/><path d="M16 29Q30 17 47 28Q34 39 16 29Z" fill="#e6aa69"/><circle cx="42" cy="27" r="2" fill="#514b32"/><path d="M23 24l4 9m5-10 4 10M18 20l7-6m8 6 7-7" stroke="#a75432" stroke-width="2"/><path d="M19 10q-4-5 1-8M33 10q-4-5 1-8" stroke="#aeaa91" stroke-width="1.5" fill="none"/>',
@@ -863,5 +851,12 @@ document
 $(".avatar").innerHTML =
   `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 43Q7 33 13 30Q17 29 23 37L19 17Q20 10 24 16L28 32L29 10Q32 5 35 11L35 31L40 14Q44 10 46 16L43 34L49 25Q54 23 55 28L48 47Q44 57 32 56Q20 55 14 43Z" fill="#edbc80" stroke="#9d7850" stroke-width="1.7"/><path d="M25 42q7-7 14 0m-4 4q-3 5-7 0" fill="none" stroke="#9d7850" stroke-width="1.5"/><path d="M7 15l-4-4m8 10H4M53 8l4-4" stroke="#d3a56c" stroke-width="2" stroke-linecap="round"/></svg>`;
 
-refresh();
+const firstRound = refresh();
 setInterval(refresh, pond.pollIntervalMs);
+window.startPondSocial({
+  pond, storage, firstRound, initialName: nickname, notify: toast,
+  onName(name) {
+    nickname = name;
+    $("#nickname").textContent = name;
+  },
+});
